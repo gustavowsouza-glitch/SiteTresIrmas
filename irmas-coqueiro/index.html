@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Irmãs Coqueiro: uma proposta de loja de canecas, brindes e brinquedos personalizados.">
+  <meta name="theme-color" content="#214c3b"><title>Irmãs Coqueiro • Presentes com a sua história</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="announcement">Feito para ter a sua cara. E tocar o coração de alguém. <span>✦</span></div>
+  <header class="header wrap">
+    <a class="brand" href="#inicio" aria-label="Irmãs Coqueiro, início"><img src="assets/logo.png" alt="Irmãs Coqueiro" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span hidden>Irmãs<br><b>Coqueiro</b> ✳</span></a>
+    <nav aria-label="Navegação principal"><a href="#colecao">A coleção</a><a href="#como-funciona">Como personalizar</a><a href="#sobre">Nossa essência</a></nav>
+    <button class="bag" id="open-bag" aria-label="Abrir lista de presentes">Minha seleção <span id="bag-count">0</span></button>
+  </header>
+  <main id="inicio">
+    <section class="hero wrap">
+      <div class="hero-copy"><p class="eyebrow">PEQUENOS PRESENTES. GRANDES AFETOS.</p><h1>Tem presente.<br>E tem <em>história.</em></h1><p>Uma caneca com aquele nome. Um brinde com a sua marca. Um brinquedo que vira lembrança. Dê um toque seu ao que faz alguém sorrir.</p><a class="button" href="#colecao">Encontre seu próximo presente <span>↗</span></a><div class="hero-note"><span>✳</span> Canecas, brindes e brinquedos personalizados</div></div>
+      <div class="hero-art"><img src="assets/colecao.png" alt="Composição ilustrativa de caneca, presentes, garrafa e brinquedo em cores suaves"><span class="round-stamp">SEU JEITO<br>DE PRESENTEAR<br><b>✳</b></span><span class="image-caption">Um pouquinho de carinho em cada detalhe.</span></div>
+    </section>
+    <div class="ribbon"><span>FEITO COM SIGNIFICADO</span><b>✳</b><span>DO SEU JEITINHO</span><b>✳</b><span>PARA GUARDAR NO CORAÇÃO</span><b>✳</b><span>IRMÃS COQUEIRO</span></div>
+    <section class="catalog wrap" id="colecao"><div class="section-top"><div><p class="eyebrow">ESCOLHA. IMAGINE. PERSONALIZE.</p><h2>Qual vai ser o seu?</h2></div><p>Para celebrar pessoas,<br>marcas e momentos.</p></div>
+      <div class="catalog-tools"><div class="filters" role="group" aria-label="Categorias"><button class="active" data-filter="Todos" aria-pressed="true">Todos os presentes</button><button data-filter="Canecas" aria-pressed="false">Canecas</button><button data-filter="Brindes" aria-pressed="false">Brindes</button><button data-filter="Brinquedos" aria-pressed="false">Brinquedos</button></div><label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Encontre um presente" aria-label="Buscar presentes"></label></div>
+      <p class="demo-note">Coleção conceito • imagens ilustrativas • valores e disponibilidade a definir</p><div id="products" class="products"></div><p id="empty" hidden>Nenhum presente encontrado. Experimente outra busca.</p>
+    </section>
+    <section class="how" id="como-funciona"><div class="wrap how-inner"><div><p class="eyebrow">A SUA IDEIA GANHA FORMA</p><h2>Um toque seu.<br><em>Todo o significado.</em></h2><p>De uma lembrancinha a uma celebração inteira, o primeiro passo é imaginar.</p></div><ol><li><span>01</span><div><h3>Escolha seu presente</h3><p>Explore as categorias e encontre a base para a sua ideia.</p></div></li><li><span>02</span><div><h3>Conte como você imagina</h3><p>Adicione nome, frase, tema e detalhes da personalização.</p></div></li><li><span>03</span><div><h3>Monte sua seleção</h3><p>Reúna as ideias e baixe um resumo para solicitar seu orçamento.</p></div></li></ol></div></section>
+    <section class="about wrap" id="sobre"><span class="about-icon" aria-hidden="true">✳</span><p class="eyebrow">PRAZER, IRMÃS COQUEIRO</p><h2>Coisas simples.<br>Sentimentos que ficam.</h2><p>Acreditamos no presente que tem intenção: o nome escolhido, a cor favorita, a mensagem que só vocês entendem. Esse é o espírito que queremos levar a cada criação.</p><a href="#colecao" class="text-link">Vamos criar uma lembrança? ↗</a></section>
+  </main>
+  <footer><div class="wrap footer-top"><a class="footer-brand" href="#inicio">Irmãs Coqueiro <span>✳</span></a><p>Canecas, brindes e brinquedos.<br>Personalizados com a sua história.</p><a href="assets/logo.png" download="irmas-coqueiro-logomarca.png">Baixar logomarca ↗</a></div><div class="wrap footer-bottom"><span>irmascoqueiro.com.br • proposta de identidade e loja</span><span>Modelo demonstrativo · vendas ainda não habilitadas</span></div></footer>
+  <dialog id="personalize"><form id="custom-form"><div class="dialog-top"><p class="eyebrow">DO SEU JEITINHO</p><button type="button" class="icon-button close-dialog" aria-label="Fechar personalização">×</button></div><h2 id="custom-title">Personalize seu presente</h2><p class="subtle">Conte a sua ideia. A produção e os valores serão confirmados no orçamento.</p><label>Nome ou frase para personalizar<input id="custom-text" maxlength="100" placeholder="Ex.: Ana • espalhe coisas boas"></label><label>Detalhes da sua ideia<textarea id="custom-details" maxlength="1000" rows="3" placeholder="Cores, tema, ocasião ou outros detalhes"></textarea></label><label>Quantidade<input id="custom-qty" type="number" min="1" max="999" value="1" required></label><button class="button" type="submit">Adicionar à minha seleção <span>+</span></button></form></dialog>
+  <dialog id="cart"><div class="dialog-top"><p class="eyebrow">SUAS IDEIAS, REUNIDAS</p><button class="icon-button close-dialog" aria-label="Fechar seleção">×</button></div><h2>Minha seleção</h2><div id="cart-items"></div><p class="subtle">Esta é uma simulação de pedido. Nenhuma compra ou cobrança será realizada.</p><button class="button" id="download-order">Baixar resumo do pedido <span>↓</span></button><button class="text-link" id="continue-shopping">Continuar escolhendo</button></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div><script src="app.js"></script>
+</body></html>

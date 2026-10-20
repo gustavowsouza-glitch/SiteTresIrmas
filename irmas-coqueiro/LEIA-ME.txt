@@ -1,0 +1,19 @@
+IRMÃS COQUEIRO — PRIMEIRO MODELO DA LOJA
+
+Abra index.html no navegador. Não é necessário instalar dependências.
+
+Inclui identidade visual, catálogo ilustrativo, filtros, busca, personalização,
+seleção de produtos salva neste navegador e download de resumo para orçamento.
+Não envia pedidos e não recebe pagamentos. Os produtos são conceitos, não um
+catálogo confirmado. Não foram inventados preços, prazos, contatos ou avaliações.
+
+Para vender de verdade: fornecer fotos e produtos reais, preços, WhatsApp de
+atendimento, formas de entrega, políticas da loja e escolher meio de pagamento.
+O domínio irmascoqueiro.com.br foi usado como referência de marca; não foi
+registrado, verificado nem conectado. A publicação pelo Sites não pôde ser
+feita porque a ferramenta ainda não está habilitada neste espaço.
+
+Identidade proposta: verde #214C3B, coral #DF755B e creme #FCF9F2.
+Tipografia: Playfair Display e DM Sans, com alternativas locais caso offline.
+Logomarca e fotografia conceito geradas com a ferramenta integrada ImageGen.
+Prompts utilizados estarão no arquivo prompts-imagens.txt.

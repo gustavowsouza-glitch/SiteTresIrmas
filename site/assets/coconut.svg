@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Coco verde aberto</title>
+  <path d="M13 23C7 30 7 43 14 52c7 9 26 11 35 1 8-9 9-21 3-30L32 16Z" fill="#69ac36" stroke="#235c2b" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M44 26c7 12 4 26-8 31 8 0 15-4 18-13 3-8 1-16-3-21Z" fill="#3e832d"/>
+  <path d="M16 31c-3 6-2 12 1 16" fill="none" stroke="#a1d85b" stroke-width="4" stroke-linecap="round"/>
+  <path d="m13 23 8-10 19-3 12 13-8 10-22-1Z" fill="#dbe99d" stroke="#235c2b" stroke-width="2.5" stroke-linejoin="round"/>
+  <ellipse cx="32" cy="23" rx="14" ry="7.5" fill="#fff6d5"/>
+  <ellipse cx="32" cy="23.5" rx="8" ry="4" fill="#6a6432"/>
+  <path d="m34 23 5-15 11-4" fill="none" stroke="#fff9e7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="m34 23 5-15 11-4" fill="none" stroke="#e69b74" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

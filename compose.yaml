@@ -1,0 +1,27 @@
+name: irmas-coqueiro
+
+services:
+  web:
+    build: .
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./site:/usr/share/nginx/html:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      PUBLIC_ORIGIN: http://localhost:8080
+      COOKIE_SECURE: "false"
+    volumes:
+      - store-data:/data
+    restart: unless-stopped
+
+volumes:
+  store-data:

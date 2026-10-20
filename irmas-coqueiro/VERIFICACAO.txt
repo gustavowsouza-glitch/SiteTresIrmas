@@ -1,0 +1,12 @@
+Verificações realizadas:
+- Sintaxe de app.js validada pelo compilador JavaScript do Node.
+- Todas as referências locais do HTML existem no projeto.
+- Simulação de DOM: catálogo inicial de seis conceitos, busca por caneca,
+  busca sem resultados, abertura de personalização, seleção de quantidade,
+  persistência da personalização e rejeição de quantidade inválida.
+- Imagens geradas inspecionadas visualmente.
+
+Limitação: não há navegador conectado neste ambiente; a aparência e o fluxo
+em navegador real, incluindo download, ainda precisam de verificação visual.
+Sites retornou: Sites is not yet enabled for this workspace.
+Nenhuma publicação ou conexão do domínio foi realizada.
