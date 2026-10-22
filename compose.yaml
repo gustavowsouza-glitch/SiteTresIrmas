@@ -23,5 +23,22 @@ services:
       - store-data:/data
     restart: unless-stopped
 
+  backup:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["node", "backup-service.mjs"]
+    environment:
+      BACKUP_DIR: /backups
+    volumes:
+      - store-data:/data:ro
+      - ./backups:/backups
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+
 volumes:
   store-data:

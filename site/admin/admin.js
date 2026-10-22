@@ -5,7 +5,9 @@
   const login = $('#login'), panel = $('#panel'), editor = $('#editor');
   const message = text => { $('#message').textContent = text; };
   let editing = null;
-  const fallback = { Canecas: 'caneca-Ewy437Oq.jpg', Brindes: 'brindes-6tBH5vxx.jpg', Brinquedos: 'brinquedos-BSLPaezt.jpg' };
+  let saving = false;
+  const fallback = { Canecas: 'caneca-Ewy437Oq.jpg', Brindes: 'brindes-6tBH5vxx.jpg', Brinquedos: 'brinquedos-BSLPaezt.jpg', Outros: 'hero-BEDHQ4UU.jpg' };
+  const categoryLabels = { Canecas: 'Canecas personalizadas', Brindes: 'Brindes personalizados', Brinquedos: 'Brinquedos personalizados', Outros: 'Outros presentes' };
   async function request(path, options = {}) {
     const headers = { ...options.headers };
     if (options.body && !(options.body instanceof File)) headers['Content-Type'] = 'application/json';
@@ -43,6 +45,7 @@
     });
   });
   function openEditor(product = null) {
+    if (saving) return;
     editing = product; editor.reset();
     $('#editor-title').textContent = product ? 'Editar produto' : 'Novo produto';
     for (const key of ['name', 'description', 'category', 'price']) {
@@ -63,11 +66,12 @@
       if (product.imageUrl) image.src = product.imageUrl;
       const info = document.createElement('div'); info.className = 'info';
       const title = document.createElement('h2'); title.className = 'font-bold text-primary'; title.textContent = product.name + (product.active ? '' : ' (oculto)');
-      const price = document.createElement('p'); price.className = 'text-sm text-muted-foreground'; price.textContent = `${product.category} · ${Number(product.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+      const price = document.createElement('p'); price.className = 'text-sm text-muted-foreground'; price.textContent = `${categoryLabels[product.category] || product.category} · ${Number(product.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
       info.append(title, price);
       const edit = document.createElement('button'); edit.className = 'admin-edit'; edit.textContent = 'Editar produto'; edit.addEventListener('click', () => openEditor(product));
       const remove = document.createElement('button'); remove.className = 'admin-delete'; remove.textContent = 'Excluir';
       remove.addEventListener('click', () => {
+        if (saving) return;
         if (!confirm(`Excluir permanentemente o produto “${product.name}”?`)) return;
         busy(row, async () => { await request(`/admin/products/${encodeURIComponent(product.id)}`, { method: 'DELETE' }); await loadProducts(); message('Produto excluído.'); });
       });
@@ -76,7 +80,11 @@
   }
   editor.addEventListener('submit', event => {
     event.preventDefault();
-    busy(editor, async () => {
+    if (saving) return;
+    saving = true;
+    const controls = [...panel.querySelectorAll('button, input, select, textarea'), $('#logout')];
+    const disabledStates = controls.map(control => control.disabled);
+    const pending = busy(editor, async () => {
       const rawPrice = editor.elements.price.value.trim().replace(',', '.');
       const price = Number(rawPrice);
       if (!rawPrice || !Number.isFinite(price) || price < 0) throw new Error('Informe um preço válido.');
@@ -84,15 +92,22 @@
       if (!name) throw new Error('Informe o nome do produto.');
       let imagePath = editing?.image_path || null;
       const file = editor.elements.photo.files[0];
+      const productId = editing?.id;
+      const product = { name, description: editor.elements.description.value.trim(), price, category: editor.elements.category.value, active: editor.elements.active.checked, image_path: imagePath };
+      controls.forEach(control => { control.disabled = true; });
       if (file) {
         if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type)) throw new Error('Escolha uma foto PNG, JPG, WebP ou GIF.');
         if (file.size > 5 * 1024 * 1024) throw new Error('A foto deve ter no máximo 5 MB.');
         const uploaded = await request('/uploads', { method: 'POST', headers: { 'Content-Type': file.type }, body: file });
         imagePath = uploaded.image_path;
       }
-      const product = { name, description: editor.elements.description.value.trim(), price, category: editor.elements.category.value, active: editor.elements.active.checked, image_path: imagePath };
-      await request(`/admin/products${editing ? `/${encodeURIComponent(editing.id)}` : ''}`, { method: editing ? 'PATCH' : 'POST', body: JSON.stringify(product) });
+      product.image_path = imagePath;
+      await request(`/admin/products${productId ? `/${encodeURIComponent(productId)}` : ''}`, { method: productId ? 'PATCH' : 'POST', body: JSON.stringify(product) });
       editor.hidden = true; await loadProducts(); message('Produto salvo.');
+    });
+    pending.finally(() => {
+      saving = false;
+      controls.forEach((control, index) => { control.disabled = disabledStates[index]; });
     });
   });
   async function showPanel() {

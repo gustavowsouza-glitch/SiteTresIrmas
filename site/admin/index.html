@@ -2,16 +2,16 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
-  <title>Área da loja — Irmãs Coqueiro</title>
-  <link rel="icon" href="../assets/favicon.svg?v=flor" type="image/svg+xml">
+  <title>Área da loja — Dindinha Presentes</title>
+  <link rel="icon" href="../assets/presente-rosa.svg?v=2" type="image/svg+xml">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Nunito:wght@400;600;700&display=swap">
-  <link rel="stylesheet" href="../styles.css"><link rel="stylesheet" href="../local.css"><link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="../styles.css"><link rel="stylesheet" href="../local.css"><link rel="stylesheet" href="admin.css"><link rel="stylesheet" href="../brand.css">
   <script src="../theme.js"></script>
 </head>
 <body class="admin-page min-h-screen bg-background text-foreground">
   <header class="admin-header">
     <div class="admin-header-inner">
-      <a href="../" class="admin-brand" aria-label="Irmãs Coqueiro, voltar à loja"><img src="../assets/favicon.svg" width="42" height="42" alt=""><span>Irmãs Coqueiro<small>ÁREA DA LOJA</small></span></a>
+      <a href="../" class="admin-brand" aria-label="Dindinha Presentes, voltar à loja"><img src="../assets/dindinha-icon.png" width="42" height="42" alt=""><span>Dindinha Presentes<small>ÁREA DA LOJA</small></span></a>
       <div class="admin-header-actions"><button id="logout" class="admin-btn admin-btn-secondary admin-signout" hidden>Sair da conta</button><button class="theme-toggle" type="button" data-theme-toggle role="switch" aria-checked="false" aria-label="Tema escuro" title="Mudar para tema escuro"><svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg><svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 13.2A9 9 0 0 1 10.8 3.2a9 9 0 1 0 10 10Z"/></svg></button></div>
     </div>
   </header>
@@ -22,7 +22,7 @@
         <p class="admin-eyebrow">FEITO COM CARINHO. CUIDADO POR VOCÊ.</p>
         <h1>Sua loja.<br>Seu toque especial.</h1>
         <p>Um espaço para dar vida às suas ideias e cuidar de cada presente que chega à vitrine.</p>
-        <div class="admin-welcome-photo"><img src="../assets/hero-BEDHQ4UU.jpg" width="1600" height="1008" alt="Canecas e presentes personalizados da Irmãs Coqueiro"><span>Pequenos detalhes, grandes afetos.</span></div>
+        <div class="admin-welcome-photo"><img src="../assets/hero-BEDHQ4UU.jpg" width="1600" height="1008" alt="Canecas e presentes personalizados da Dindinha Presentes"><span>Pequenos detalhes, grandes afetos.</span></div>
         <div class="admin-welcome-tags"><span>✳ Produtos</span><span>Fotos</span><span>Preços</span></div>
       </aside>
       <div class="admin-login-side">
@@ -43,7 +43,7 @@
         <div class="admin-editor-heading"><p class="admin-eyebrow">CADA DETALHE CONTA</p><h2 id="editor-title">Novo produto</h2></div>
         <label>Nome do produto<input name="name" placeholder="Ex.: Caneca com nome" maxlength="200" required></label>
         <label>Preço (R$)<input name="price" inputmode="decimal" placeholder="39,90" required></label>
-        <label>Categoria<select name="category"><option>Canecas</option><option>Brindes</option><option>Brinquedos</option></select></label>
+        <label>Categoria<select name="category"><option value="Canecas">Canecas personalizadas</option><option value="Brindes">Brindes personalizados</option><option value="Brinquedos">Brinquedos personalizados</option><option value="Outros">Outros presentes</option></select></label>
         <label>Foto do produto<input name="photo" type="file" accept="image/png,image/jpeg,image/webp,image/gif"><small>PNG, JPG, WebP ou GIF · até 5 MB</small></label>
         <label class="admin-full-width">Descrição<textarea name="description" placeholder="Conte o que torna este presente especial…" rows="3" maxlength="5000"></textarea></label>
         <label class="check-label admin-full-width"><input name="active" type="checkbox" checked> Mostrar este produto na vitrine</label>
@@ -52,7 +52,7 @@
       <div class="admin-catalog-heading"><h2>Seu catálogo</h2><p id="product-count"></p></div>
       <div id="admin-products" class="admin-product-list"></div>
     </section>
-    <footer class="admin-footer">Irmãs Coqueiro <span aria-hidden="true">✳</span> Presentes com a sua história.</footer>
+    <footer class="admin-footer">Dindinha Presentes <span aria-hidden="true">✳</span> Presentes com a sua história.</footer>
   </main>
   <script src="../config.js"></script><script src="admin.js"></script>
 </body></html>

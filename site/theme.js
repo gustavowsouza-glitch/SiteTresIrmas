@@ -15,7 +15,7 @@
       button.title = dark ? 'Mudar para tema claro' : 'Mudar para tema escuro';
     });
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = dark ? '#14231d' : '#214c3b';
+    if (meta) meta.content = dark ? '#302032' : '#713052';
   }
   apply(preference || (system.matches ? 'dark' : 'light'));
   system.addEventListener('change', event => {

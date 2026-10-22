@@ -14,7 +14,7 @@ try {
   let base = await start();
   app.db.prepare('INSERT INTO admins VALUES (1, ?, ?)').run('owner@example.test', await hashPassword('Test-Owner-Secret-2026'));
   const request = (path, options = {}) => fetch(base + path, options);
-  const product = { name: 'Produto de teste', description: 'Descrição', category: 'Canecas', price: 12.35, active: false, image_path: null };
+  const product = { name: 'Produto de teste', description: 'Descrição', category: 'Outros', price: 12.35, active: false, image_path: null };
   const json = value => ({ 'Content-Type': 'application/json', ...value });
   assert.equal((await (await request('/products')).json()).length, 3);
   for (const [path, method] of [['/admin/products','GET'],['/admin/products','POST'],['/admin/products/52748a7e-7569-4311-9087-c379bec01745','PATCH'],['/admin/products/52748a7e-7569-4311-9087-c379bec01745','DELETE'],['/uploads','POST']]) assert.equal((await request(path, { method })).status, 401);
@@ -32,6 +32,10 @@ try {
   assert.equal(created.status, 201);
   const record = await created.json();
   assert.equal(record.price, 12.35);
+  assert.equal(record.category, 'Outros');
+  assert.equal((await request(`/products/${record.id}`)).status, 404);
+  const quote = items => request('/cart/quote', { method: 'POST', headers: json(), body: JSON.stringify({ items }) });
+  assert.equal((await quote([{ id: record.id, quantity: 1, personalization: '' }])).status, 409);
   assert.equal((await (await request('/products')).json()).some(row => row.id === record.id), false);
   assert.equal((await request('/uploads', { method: 'POST', headers: { Cookie: headers.Cookie }, body: '<svg>unsafe</svg>' })).status, 415);
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=', 'base64');
@@ -40,6 +44,15 @@ try {
   const photo = await uploaded.json();
   const patch = await request(`/admin/products/${record.id}`, { method: 'PATCH', headers, body: JSON.stringify({ ...product, active: true, image_path: photo.image_path }) });
   assert.equal(patch.status, 200);
+  assert.equal((await request(`/products/${record.id}`)).status, 200);
+  assert.equal((await quote([{ id: record.id, quantity: 0, personalization: '' }])).status, 400);
+  assert.equal((await quote([{ id: record.id, quantity: 1.5, personalization: '' }])).status, 400);
+  assert.equal((await quote([{ id: record.id, quantity: 100, personalization: '' }])).status, 400);
+  assert.equal((await quote([])).status, 400);
+  const subtotal = await (await quote([{ id: record.id, quantity: 3, personalization: 'Nome especial', price: 0.01 }])).json();
+  assert.equal(subtotal.subtotal, 37.05);
+  assert.equal(subtotal.items[0].personalization, 'Nome especial');
+  assert.equal(subtotal.items[0].price, 12.35);
   const publicPhoto = await fetch(new URL(photo.imageUrl, base));
   assert.equal(publicPhoto.status, 200); assert.equal(publicPhoto.headers.get('content-type'), 'image/png');
   assert.equal((await (await request('/products')).json()).some(row => row.id === record.id), true);
@@ -50,5 +63,5 @@ try {
   assert.equal((await request('/auth/logout', { method: 'POST', headers })).status, 200);
   assert.equal((await request('/auth/session', { headers })).status, 401);
   assert.equal((await (await request('/products')).json()).length, 3);
-  console.log('PASS: acesso do dono, bloqueio de visitantes, CSRF, preços, CRUD, fotos, persistência e logout.');
+  console.log('PASS: acesso do dono, visitantes, CSRF, CRUD, fotos, persistência, detalhes, quarta categoria, carrinho e preços calculados no servidor.');
 } finally { if (app.server.listening) await stop(); await rm(directory, { recursive: true, force: true }); }

@@ -1,6 +1,8 @@
 FROM node:24-alpine
 WORKDIR /app
 COPY backend/ ./
+COPY site/shop-core*.mjs ./
+COPY site/storefront.js site/admin/admin.js ./ui/
 RUN mkdir -p /data/uploads && chown -R node:node /data
 USER node
 ENV NODE_ENV=production DATA_DIR=/data PORT=3000

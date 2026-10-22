@@ -1,11 +1,13 @@
 import { createServer } from 'node:http';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import { readFile, writeFile, stat } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
+import { statSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { openDatabase, hashPassword, verifyPassword } from './database.mjs';
+import { cleanUploads } from './uploads.mjs';
 
-const categories = ['Canecas', 'Brindes', 'Brinquedos'];
+const categories = ['Canecas', 'Brindes', 'Brinquedos', 'Outros'];
 const sha = value => createHash('sha256').update(value).digest('hex');
 class HttpError extends Error { constructor(status, message) { super(message); this.status = status; } }
 const fail = (status, message) => { throw new HttpError(status, message); };
@@ -15,6 +17,10 @@ export async function createStore({ directory = process.env.DATA_DIR || '/data',
   const db = openDatabase(directory);
   const dummyHash = await hashPassword(randomBytes(32).toString('hex'));
   const attempts = new Map();
+  const cleanup = () => { try { cleanUploads(db, directory); } catch (error) { console.error('Falha na limpeza de fotos:', error.code || error.name); } };
+  cleanup();
+  const cleanupTimer = setInterval(cleanup, 60 * 60 * 1000);
+  cleanupTimer.unref();
   function sessionToken(request) { return /(?:^|;\s*)ic_session=([a-f0-9]{64})(?:;|$)/.exec(request.headers.cookie || '')?.[1]; }
   function authorized(request) {
     const token = sessionToken(request);
@@ -87,6 +93,26 @@ export async function createStore({ directory = process.env.DATA_DIR || '/data',
         const rows = db.prepare(`SELECT * FROM products ${path.includes('/admin/') ? '' : 'WHERE active=1'} ORDER BY created_at, id`).all();
         return send(response, 200, rows.map(rowToProduct));
       }
+      const publicProduct = /^\/api\/products\/([a-f0-9-]{36})$/.exec(path);
+      if (method === 'GET' && publicProduct) {
+        const row = db.prepare('SELECT * FROM products WHERE id=? AND active=1').get(publicProduct[1]);
+        if (!row) fail(404, 'Este produto não está disponível.');
+        return send(response, 200, rowToProduct(row));
+      }
+      if (method === 'POST' && path === '/api/cart/quote') {
+        const input = await json(request);
+        if (!Array.isArray(input?.items) || input.items.length < 1 || input.items.length > 30) fail(400, 'Adicione de 1 a 30 itens ao carrinho.');
+        let subtotalCents = 0;
+        const items = input.items.map(item => {
+          if (!item || typeof item.id !== 'string' || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 99 || typeof item.personalization !== 'string' || item.personalization.length > 500) fail(400, 'Confira os itens e as quantidades do carrinho.');
+          const row = db.prepare('SELECT * FROM products WHERE id=? AND active=1').get(item.id);
+          if (!row) fail(409, 'Um dos produtos saiu da vitrine. Remova-o do carrinho para continuar.');
+          const totalCents = row.price_cents * item.quantity;
+          subtotalCents += totalCents;
+          return { ...rowToProduct(row), quantity: item.quantity, personalization: item.personalization.trim(), total: totalCents / 100 };
+        });
+        return send(response, 200, { items, subtotal: subtotalCents / 100, currency: 'BRL' });
+      }
       if (method === 'POST' && path === '/api/uploads') {
         requireOwner(request);
         const buffer = await bytes(request, 5 * 1024 * 1024);
@@ -111,11 +137,12 @@ export async function createStore({ directory = process.env.DATA_DIR || '/data',
         requireOwner(request);
         const id = productMatch?.[1] || randomUUID();
         if (productMatch && !db.prepare('SELECT id FROM products WHERE id=?').get(id)) fail(404, 'Produto não encontrado.');
-        if (method === 'DELETE') { db.prepare('DELETE FROM products WHERE id=?').run(id); return send(response, 200, { ok: true }); }
+        if (method === 'DELETE') { db.prepare('DELETE FROM products WHERE id=?').run(id); cleanup(); return send(response, 200, { ok: true }); }
         const data = validate(await json(request));
-        if (data.image_path) { try { await stat(join(directory, 'uploads', data.image_path)); } catch { fail(400, 'Envie a foto antes de salvar.'); } }
+        if (data.image_path) { try { statSync(join(directory, 'uploads', data.image_path)); } catch { fail(400, 'Envie a foto antes de salvar.'); } }
         if (method === 'POST') db.prepare('INSERT INTO products VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(id, data.name, data.description, data.category, data.price_cents, data.active ? 1 : 0, data.image_path, new Date().toISOString());
         else db.prepare('UPDATE products SET name=?, description=?, category=?, price_cents=?, active=?, image_path=? WHERE id=?').run(data.name, data.description, data.category, data.price_cents, data.active ? 1 : 0, data.image_path, id);
+        cleanup();
         return send(response, method === 'POST' ? 201 : 200, rowToProduct(db.prepare('SELECT * FROM products WHERE id=?').get(id)));
       }
       fail(404, 'Recurso não encontrado.');
@@ -126,6 +153,7 @@ export async function createStore({ directory = process.env.DATA_DIR || '/data',
       else response.end();
     }
   });
+  server.on('close', () => clearInterval(cleanupTimer));
   return { server, db };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

@@ -1,0 +1,9 @@
+Produto: Kit de móveis de casinha em MDF
+Categoria: Brinquedos
+Descrição: Kit de mini móveis de casinha em MDF: cadeiras, bancos, mesinha, banheira e camas. Composição e valor final a combinar com a loja, até R$ 30,00 por kit. Imagem ilustrativa.
+Preço cadastrado: R$ 30,00, como referência máxima definida pelo proprietário; valor final conforme composição.
+Imagem: site/assets/moveis-casinha-mdf.png
+Ferramenta: ImageGen integrada (sem CLI/API externa).
+
+Prompt utilizado:
+Use case: product-mockup. Create one square photorealistic catalog photograph for a Brazilian personalized gift shop. Subject: a coordinated collection of MINIATURE DOLLHOUSE FURNITURE made from natural unpainted laser-cut MDF, visibly toy-scale rather than full-size furniture. Include two small chairs, a low bench or stool, a miniature table, an MDF dollhouse bathtub with recognizable curved tub silhouette, and two small dollhouse beds. Keep each piece clearly identifiable and separated with realistic proportions; show flat MDF sheet construction, neat finger joints and slightly darker laser-cut edges. Arrange the furniture as a charming miniature dollhouse-room collection on a warm pale beige tabletop with a soft blush studio backdrop, in a slightly elevated three-quarter view. Beds may have small neutral blush fabric mattresses to clarify their function, while the bathtub is visibly made of MDF, not porcelain. Soft natural window lighting, tasteful e-commerce product photography, clean uncluttered composition, all pieces fully in frame with comfortable crop-safe margins for square product cards. No people, no full-size furniture, no logos, no text, no price, no watermark. This is an illustrative concept image for the product 'Móveis de casinha em MDF'.
