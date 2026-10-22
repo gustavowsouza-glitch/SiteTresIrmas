@@ -25,6 +25,7 @@ docker compose up -d --build --wait
 
 - Vitrine: http://localhost:8080
 - Administração: http://localhost:8080/admin/
+- Prévia no Lovable: [Visualizar Dindinha Presentes](https://lovable.dev/preview/eUgGySETCqG6l0DPgEGRnQ8SQKzDAVIj)
 
 Para abrir a vitrine pelo PowerShell:
 

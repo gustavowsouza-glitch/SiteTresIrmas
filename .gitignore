@@ -2,6 +2,7 @@
 .env.*
 !.env.example
 backups/
+migration-exports/
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
