@@ -4,11 +4,17 @@ Loja de presentes personalizados com vitrine, carrinho e painel administrativo. 
 
 ## Mudanças recentes — 22/10/2026
 
+- Removidos os quatro atalhos de categorias do cabeçalho. As categorias continuam no catálogo e na página inicial.
+- Adicionada `/minhas-compras/` no menu e nas abas das listas: histórico local dos últimos 50 pedidos iniciados pelo botão de WhatsApp, com referência, data, itens, personalização e subtotal da ocasião. Não confirma mensagem enviada, pagamento, compra ou andamento; esses detalhes dependem da loja. Pedidos anteriores à implementação não são recuperados automaticamente.
+- Adicionada a página `/favoritos/`, com corações nos produtos e detalhes, contador no cabeçalho e lista salva neste navegador, sem cadastro. Favoritos indisponíveis são sinalizados e podem ser removidos; a lista aceita até 200 produtos.
+- Carrinho com abas Carrinho/Favoritos, seleção individual ou de todos os itens, total por linha e resumo lateral. Apenas os produtos marcados entram na cotação e no resumo para WhatsApp; itens desmarcados permanecem guardados com sua personalização.
+- Vitrine reorganizada com inspiração em marketplace: busca global no cabeçalho, atalhos de categorias, banner compacto, quatro destaques na página inicial e preços mais visíveis. A marca, as cores e os temas da Dindinha foram preservados.
+- Catálogo com filtros por categoria e faixa de preço, busca, ordenação e botão para limpar filtros. Busca e filtros ficam na URL para permitir compartilhar e reabrir a seleção. Essas alterações estão na versão local; a prévia do Lovable não é atualizada automaticamente.
 - Marca atualizada de Três Irmãs para **Dindinha Presentes**, com a logo e o símbolo enviados pelo proprietário.
 - Ícone da aba substituído por um presente rosa em SVG, sem fundo branco.
 - Tema claro com fundos em rosa, lilás e pêssego, cabeçalho e rodapé em vinho e cartões de produtos em tons mais escuros e suaves.
 - Modo escuro refinado com fundo ameixa, contrastes suaves, bordas, sombras e destaques em rosa. O botão de tema usa apenas ícones e mantém uma descrição acessível.
-- Vitrine com seis páginas, categorias, busca, ordenação, detalhes e carrinho com personalização.
+- Vitrine com oito páginas, categorias, busca, ordenação, detalhes, favoritos, histórico local de pedidos e carrinho com personalização.
 - Acesso ao painel removido dos menus públicos; a administração permanece em `/admin/`.
 - Kit de móveis de casinha em MDF adicionado ao catálogo local, em Brinquedos, com imagem ilustrativa e preço de referência de R$ 30,00. A composição e o valor final são combinados com a loja, até R$ 30,00 por kit.
 - Corrigido o salvamento no painel: os dados e o identificador do produto são capturados antes de enviar a foto, e a troca de produto fica bloqueada durante a operação.
@@ -49,6 +55,8 @@ O nome técnico do projeto Compose continua `irmas-coqueiro` para preservar o vo
 - `/produtos/`: catálogo, busca, quatro categorias e ordenação.
 - `/produto/?id=…`: detalhes, quantidade e texto de personalização.
 - `/carrinho/`: itens salvos no navegador, alteração de quantidades, remoção e subtotal.
+- `/favoritos/`: presentes salvos pelo coração, com acesso aos detalhes e opção de adicionar ao carrinho.
+- `/minhas-compras/`: resumos locais dos pedidos iniciados via WhatsApp, sem confirmação automática de compra. Funciona sem carregar o catálogo; os dados podem ser perdidos ao limpar o navegador e não são sincronizados entre dispositivos.
 - `/contato/`: WhatsApp e informações sobre o atendimento.
 - `/sobre/`: apresentação da Dindinha Presentes.
 
@@ -58,7 +66,7 @@ O catálogo local recebeu quatro produtos: kit brinde personalizado, caneca com 
 
 O cliente monta o carrinho sem precisar de conta. Antes de abrir o WhatsApp, a API confere a disponibilidade e calcula novamente os preços em centavos, usando o banco. O navegador não determina os valores. O botão apenas abre uma conversa com o resumo; não envia mensagens automaticamente nem registra uma venda confirmada.
 
-O carrinho fica salvo neste navegador e aceita até 30 itens distintos, com 1 a 99 unidades por item e até 500 caracteres de personalização. Itens do mesmo produto com personalizações diferentes são mantidos separados. Mudanças no carrinho durante uma cotação impedem o envio de um resumo desatualizado.
+O carrinho fica salvo neste navegador e aceita até 30 itens distintos, com 1 a 99 unidades por item e até 500 caracteres de personalização. Itens do mesmo produto com personalizações diferentes são mantidos separados. A seleção de cada item também é salva; sem nenhum item marcado, o botão de continuar fica bloqueado. Mudanças no carrinho durante uma cotação impedem o envio de um resumo desatualizado. Favoritos e carrinho são sincronizados entre abas do mesmo navegador, mas não entre dispositivos ou contas. Limpar os dados do navegador apaga essas listas locais.
 
 Pagamento, frete automático, cadastro de cliente, domínio e publicação ficam para outra etapa. Não há ranking de mais vendidos porque ainda não existe histórico de vendas. Os produtos da página inicial são apresentados como destaques do catálogo.
 
@@ -132,7 +140,7 @@ Os testes usam banco e arquivos temporários, sem modificar produtos reais:
 | `backend/maintenance.test.mjs` | Prazo de limpeza, preservação de fotos em uso, backup válido e cópias incompletas |
 | `backend/ui-regression.test.mjs` | Salvamento com envio de foto pendente e mudança do carrinho ou navegação durante a cotação |
 
-Na validação das correções em 22/10/2026, a integração passou, assim como os sete testes das demais suítes. Os testes de interface simulam os elementos e as respostas de rede em Node.js; não substituem uma conferência visual no navegador e no celular.
+Na validação das correções em 22/10/2026, a integração passou. Após a inclusão de Minhas compras, os 14 testes das demais suítes passaram, incluindo validação e persistência do histórico, busca, filtros de categoria/preço, ordenação, limpeza dos filtros na URL, validação e persistência de favoritos, migração de carrinhos antigos e cotação apenas dos itens selecionados. Os testes de interface simulam os elementos e as respostas de rede em Node.js; não substituem uma conferência visual no navegador e no celular.
 
 ## Estrutura
 
@@ -140,6 +148,7 @@ Na validação das correções em 22/10/2026, a integração passou, assim como 
 - `site/storefront.js`: navegação, páginas, catálogo, detalhes e carrinho.
 - `site/shop-core.mjs`: regras do carrinho, categorias e resumo de pedido.
 - `site/brand.css`: identidade rosa/vinho, temas claro/escuro e layout responsivo.
+- `site/marketplace.css`: organização da vitrine em formato de marketplace, busca do cabeçalho, filtros e adaptação para celular, sem alterar o visual do painel.
 - `site/theme.js`: seleção do tema, preferência do sistema e escolha salva no navegador.
 - `site/config.js`: WhatsApp e endereço relativo `/api`.
 - `site/admin/`: login e editor de produtos.

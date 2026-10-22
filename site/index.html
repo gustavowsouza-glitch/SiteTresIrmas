@@ -14,6 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito:wght@400;600;700;800&display=swap">
   <link rel="stylesheet" href="/brand.css">
+  <link rel="stylesheet" href="/marketplace.css">
   <script src="/theme.js"></script>
 </head>
 <body>
@@ -21,19 +22,22 @@
   <header class="shop-header">
     <div class="header-inner section-wrap">
       <a href="/" class="brand" aria-label="Dindinha Presentes, início"><img src="/assets/dindinha-icon.png" width="52" height="52" alt=""><span>Dindinha<small>PRESENTES</small></span></a>
-      <nav id="main-nav" aria-label="Navegação principal"><a href="/">Início</a><a href="/produtos/">Produtos</a><a href="/sobre/">Sobre a loja</a><a href="/contato/">Contato</a></nav>
+      <form id="header-search" class="header-search" action="/produtos/" method="get" role="search" hidden><label class="visually-hidden" for="header-query">Buscar presentes</label><input id="header-query" type="search" name="q" maxlength="200" placeholder="Busque por canecas, brinquedos e presentes…"><button type="submit" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button></form>
       <div class="shop-header-actions">
+        <button class="search-toggle icon-link" type="button" data-search-toggle aria-controls="header-search" aria-expanded="false" aria-label="Abrir busca" title="Buscar presentes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button>
         <button class="theme-toggle" type="button" data-theme-toggle role="switch" aria-checked="false" aria-label="Tema escuro" title="Mudar para tema escuro"><svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg><svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 13.2A9 9 0 0 1 10.8 3.2a9 9 0 1 0 10 10Z"/></svg></button>
-        <a class="cart-header icon-link" href="/carrinho/" data-cart-link aria-label="Carrinho"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14l2 14H3L5 7Zm3 0V5a4 4 0 0 1 8 0v2"/></svg><span data-cart-count>0</span></a>
+        <a class="cart-header favorites-header icon-link" href="/favoritos/" aria-label="Meus favoritos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg><span data-favorites-count>0</span><small>Favoritos</small></a>
+        <a class="cart-header icon-link" href="/carrinho/" data-cart-link aria-label="Carrinho"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 7h14l2 14H3L5 7Zm3 0V5a4 4 0 0 1 8 0v2"/></svg><span data-cart-count>0</span><small>Carrinho</small></a>
         <a class="header-whatsapp" data-whatsapp href="https://wa.me/5577998697003" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 10 10 0 0 1-4-.8L3 21l1.8-5.5a10 10 0 0 1-.8-4A8.5 8.5 0 0 1 12.5 3 8.5 8.5 0 0 1 21 11.5Z"/></svg><span>Fale com a gente</span></a>
         <button class="menu-toggle icon-link" type="button" data-menu aria-controls="main-nav" aria-expanded="false" aria-label="Abrir menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       </div>
     </div>
+    <div class="header-navigation section-wrap"><nav id="main-nav" aria-label="Navegação principal"><a href="/">Início</a><a href="/produtos/">Todos os produtos</a><a href="/minhas-compras/">Minhas compras</a><a href="/sobre/">Sobre a loja</a><a href="/contato/">Contato</a></nav></div>
   </header>
   <main id="page" tabindex="-1"><div class="section-wrap loading-state" role="status">Preparando seus próximos presentes…</div></main>
   <footer class="shop-footer"><div class="section-wrap footer-top"><div class="footer-brand-block"><a class="brand" href="/"><img src="/assets/dindinha-icon.png" width="48" height="48" alt=""><span>Dindinha<small>PRESENTES</small></span></a><p>Presentes personalizados para tornar<br>cada momento especial.</p></div><div><h2>Encontre seu carinho</h2><a href="/produtos/?categoria=Canecas">Canecas personalizadas</a><a href="/produtos/?categoria=Brindes">Brindes personalizados</a><a href="/produtos/?categoria=Brinquedos">Brinquedos personalizados</a><a href="/produtos/?categoria=Outros">Outros presentes</a></div><div><h2>Por aqui</h2><a href="/sobre/">Sobre a loja</a><a href="/contato/">Contato</a><a href="/carrinho/">Meu carrinho</a></div><div><h2>Vamos conversar?</h2><a data-whatsapp href="https://wa.me/5577998697003" target="_blank" rel="noopener noreferrer">WhatsApp · (77) 99869-7003 ↗</a><p>A gente combina os detalhes<br>do seu presente com você.</p></div></div><div class="section-wrap footer-bottom"><span>© <span data-year>2026</span> Dindinha Presentes</span><span>Um carinho em cada detalhe. ♡</span></div></footer>
   <div id="shop-toast" class="shop-toast" role="status" aria-live="polite" hidden></div>
   <noscript><div class="section-wrap empty-state">Ative o JavaScript para navegar pelo catálogo e montar seu carrinho. Você também pode pedir pelo <a href="https://wa.me/5577998697003">WhatsApp</a>.</div></noscript>
-  <script src="/config.js"></script><script type="module" src="/storefront.js"></script>
+  <script src="/config.js"></script><script src="/header-search.js"></script><script type="module" src="/storefront.js"></script>
 </body>
 </html>
