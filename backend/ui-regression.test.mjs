@@ -130,3 +130,50 @@ test('checkout redirects only with an unchanged cart; stale requests and errors 
   delete navigated.nodes['#quote-message']; navigated.reject(new Error('offline'));
   await pending; assert.equal(navigated.redirects.length, 0);
 });
+
+
+test('management saves a draft before publishing and blocks publication during edits or pending requests', async () => {
+  const ids = ['login','panel','editor','message','logout','new-product','cancel-edit','editor-title','admin-products','product-count','login-view','publish-catalog','discard-catalog','draft-status'];
+  const nodes = Object.fromEntries(ids.map(id => [`#${id}`, node()]));
+  const editor = nodes['#editor']; editor.hidden = true;
+  editor.elements = Object.fromEntries(['name','description','category','price','active','photo'].map(key => [key,node()]));
+  nodes['#login'].querySelector = () => node();
+  const controls = [...Object.values(editor.elements),nodes['#publish-catalog'],nodes['#discard-catalog']];
+  nodes['#panel'].querySelectorAll = () => controls;
+  const product = { id:'11111111-1111-4111-8111-111111111111',name:'Caneca original',description:'Original',category:'Canecas',price:10,active:true,image_path:null };
+  let published = {...product}, draft = {...product}, revision=0, pending=false, release;
+  const calls=[];
+  const response = body => ({ok:true,text:async()=>JSON.stringify(body)});
+  const state = () => ({products:[draft],revision,pending,conflict:false});
+  const context=vm.createContext({window:{STORE_CONFIG:{apiBase:'/api'}},document:{querySelector:s=>nodes[s],createElement:node},File:class {},AbortSignal,confirm:()=>true,fetch:async(url,options={})=>{
+    calls.push({url,method:options.method});
+    if(url.endsWith('/auth/session'))return response({});
+    if(url.endsWith('/management/products'))return response(state());
+    if(options.method==='PATCH'){
+      const body=JSON.parse(options.body);assert.equal(body.revision,revision);
+      draft={...draft,...body};pending=true;revision++;return response(state());
+    }
+    if(url.endsWith('/management/publish')){
+      assert.equal(JSON.parse(options.body).revision,revision);
+      return new Promise(resolve=>{release=()=>{published={...draft};pending=false;revision++;resolve(response(state()));};});
+    }
+    throw Error('Unexpected request '+url);
+  }});
+  vm.runInContext(source('admin.js').replace('  restoreSession();', '  globalThis.openEditorForTest = openEditor; restoreSession();'),context);
+  await tick();await tick();
+  assert.equal(nodes['#publish-catalog'].disabled,true);
+  nodes['#new-product'].click();
+  editor.elements.name.value='Nova caneca';editor.elements.description.value='Nova';editor.elements.category.value='Canecas';editor.elements.price.value='25,90';editor.elements.active.checked=true;
+  context.openEditorForTest(product);
+  editor.elements.name.value='Caneca revisada';editor.elements.price.value='25,90';
+  editor.submit({preventDefault(){}});await tick();await tick();
+  assert.equal(published.price,10);assert.equal(draft.price,25.90);
+  assert.equal(editor.hidden,true);assert.equal(nodes['#publish-catalog'].disabled,false);
+  nodes['#new-product'].click();assert.equal(nodes['#publish-catalog'].disabled,true);
+  nodes['#cancel-edit'].click();assert.equal(nodes['#publish-catalog'].disabled,false);
+  nodes['#publish-catalog'].click();assert.equal(controls.every(control=>control.disabled),true);
+  nodes['#publish-catalog'].click();assert.equal(calls.filter(call=>call.url.endsWith('/management/publish')).length,1);
+  release();await tick();await tick();
+  assert.equal(published.price,25.90);assert.equal(nodes['#publish-catalog'].disabled,true);
+  assert.match(nodes['#message'].textContent,/publicado/);
+});

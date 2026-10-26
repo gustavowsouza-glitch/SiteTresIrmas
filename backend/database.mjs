@@ -23,6 +23,9 @@ export function openDatabase(directory) {
     CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, expires_at INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT NOT NULL, description TEXT NOT NULL DEFAULT '', category TEXT NOT NULL, price_cents INTEGER NOT NULL CHECK(price_cents>=0), active INTEGER NOT NULL CHECK(active IN (0,1)), image_path TEXT, created_at TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);`);
+  db.exec('CREATE TABLE IF NOT EXISTS admin_logins (login TEXT PRIMARY KEY, password_hash TEXT NOT NULL)');
+  if (!db.prepare('PRAGMA table_info(sessions)').all().some(column => column.name === 'login'))
+    db.exec('ALTER TABLE sessions ADD COLUMN login TEXT');
   if (!db.prepare("SELECT 1 FROM metadata WHERE key='seeded'").get()) {
     const seed = JSON.parse(readFileSync(new URL('./seed.json', import.meta.url), 'utf8'));
     db.exec('BEGIN');

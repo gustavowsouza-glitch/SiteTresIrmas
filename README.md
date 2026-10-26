@@ -21,6 +21,28 @@ Loja de presentes personalizados com vitrine, carrinho e painel administrativo. 
 - Corrigido o preparo do pedido: uma cotação pendente é descartada se o carrinho ou a página mudar antes de abrir o WhatsApp.
 - Adicionadas limpeza automática de fotos sem uso, cópias de segurança fora do volume do banco e verificações de regressão para essas funcionalidades.
 
+## Central de produtos com publicação
+
+Acesse http://localhost:8080/gestao/ e entre com a mesma conta da administração.
+
+1. Clique em **Novo produto** ou **Editar produto** e altere nome, preço, categoria, foto ou descrição.
+2. Clique em **Salvar rascunho**. A prévia da central é atualizada, mas a vitrine continua com os dados publicados.
+3. Confira os produtos e clique em **Publicar na loja** para enviar todas as alterações de uma vez. As remoções do rascunho também são aplicadas nessa publicação.
+4. Atualize a vitrine aberta para conferir os dados novos. Novas consultas e cotações usam o catálogo publicado.
+
+**Descartar rascunhos** abandona apenas as alterações pendentes. Produtos ocultos continuam fora da vitrine, mesmo após publicar. O rascunho é compartilhado pela conta administrativa e fica salvo no banco, inclusive após reiniciar o Docker; suas fotos também entram na limpeza protegida e nos backups.
+
+O painel `/admin/` mantém seu comportamento de salvar diretamente na loja. Prefira `/gestao/` para preparar alterações antes de publicar. Se alguém usar o painel direto enquanto houver rascunhos, a central bloqueia a publicação para evitar sobrescrever a versão atual. Descarte os rascunhos, confira o catálogo atual e refaça as edições necessárias. Duas abas com versões diferentes também recebem aviso para atualizar antes de salvar.
+
+Essa publicação atualiza somente o catálogo desta instalação local. Não envia alterações para o Lovable nem publica o site na internet. Nome da loja e textos da página inicial permanecem como estão.
+
+Teste da publicação, usando banco temporário:
+
+```powershell
+docker compose build api
+docker run --rm --network none irmas-coqueiro-api node --test catalog-drafts.test.mjs maintenance.test.mjs ui-regression.test.mjs shop-core.test.mjs
+```
+
 ## Iniciar
 
 É necessário ter o Docker Desktop instalado, aberto e usando containers Linux. Na pasta raiz do projeto, execute:
@@ -74,7 +96,7 @@ O acesso fica disponível somente neste computador, pela porta `127.0.0.1:8080`.
 
 ## Administrador
 
-A conta proprietária é criada por `backend/bootstrap-admin.mjs`, que recebe JSON com `email` e `password` pela entrada padrão. A senha deve ter no mínimo 12 caracteres. O script recusa sobrescrever uma conta existente. Não existe cadastro público, e clientes não precisam entrar na loja.
+A conta proprietária é criada por `backend/bootstrap-admin.mjs`, que recebe JSON com `email` e `password` pela entrada padrão. A senha deve ter no mínimo 12 caracteres. O script recusa sobrescrever uma conta existente. Não existe cadastro público, e clientes não precisam entrar na loja. O formulário também aceita nomes de usuário para acessos administrativos adicionais, criados localmente por `backend/create-login.mjs`. Esses acessos compartilham a administração do catálogo e possuem sessões independentes; a conta proprietária por e-mail é preservada. Senhas não devem ser gravadas neste README ou no Git.
 
 O administrador gerencia nome, categoria, descrição, preço, foto e visibilidade dos produtos. Os preços são armazenados em centavos. Fotos podem ser PNG, JPG, WebP ou GIF até 5 MB. A API exige sessão válida para todas as alterações e para listar produtos ocultos. A senha é armazenada com salt e hash scrypt. O cookie de sessão é HttpOnly e SameSite=Strict, dura 8 horas e é invalidado no logout.
 

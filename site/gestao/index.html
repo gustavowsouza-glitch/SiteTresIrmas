@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
+  <title>Central de produtos — Dindinha Presentes</title>
+  <link rel="icon" href="../assets/presente-rosa.svg?v=2" type="image/svg+xml">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Nunito:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="../styles.css"><link rel="stylesheet" href="../local.css"><link rel="stylesheet" href="../admin/admin.css"><link rel="stylesheet" href="gestao.css"><link rel="stylesheet" href="../brand.css">
+  <script src="../theme.js"></script>
+</head>
+<body class="admin-page min-h-screen bg-background text-foreground">
+  <header class="admin-header">
+    <div class="admin-header-inner">
+      <a href="../" class="admin-brand" aria-label="Dindinha Presentes, voltar à loja"><img src="../assets/dindinha-icon.png" width="42" height="42" alt=""><span>Dindinha Presentes<small>CENTRAL DE PRODUTOS</small></span></a>
+      <div class="admin-header-actions"><button id="logout" class="admin-btn admin-btn-secondary admin-signout" hidden>Sair da conta</button><button class="theme-toggle" type="button" data-theme-toggle role="switch" aria-checked="false" aria-label="Tema escuro" title="Mudar para tema escuro"><svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg><svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 13.2A9 9 0 0 1 10.8 3.2a9 9 0 1 0 10 10Z"/></svg></button></div>
+    </div>
+  </header>
+  <main class="admin-main">
+    <p id="message" class="admin-message" role="status" aria-live="polite"></p>
+    <div id="login-view" class="admin-login-layout">
+      <aside class="admin-welcome">
+        <p class="admin-eyebrow">FEITO COM CARINHO. CUIDADO POR VOCÊ.</p>
+        <h1>Sua loja.<br>Seu toque especial.</h1>
+        <p>Um espaço para dar vida às suas ideias e cuidar de cada presente que chega à vitrine.</p>
+        <div class="admin-welcome-photo"><img src="../assets/hero-BEDHQ4UU.jpg" width="1600" height="1008" alt="Canecas e presentes personalizados da Dindinha Presentes"><span>Pequenos detalhes, grandes afetos.</span></div>
+        <div class="admin-welcome-tags"><span>✳ Produtos</span><span>Fotos</span><span>Preços</span></div>
+      </aside>
+      <div class="admin-login-side">
+        <form id="login" class="admin-form admin-login-form">
+          <div class="admin-login-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/></svg></div>
+          <div><p class="admin-eyebrow">SEU ESPAÇO DE CRIAÇÃO</p><h2>Boas-vindas!</h2><p class="admin-intro">Entre com a mesma conta da administração para preparar as atualizações.</p></div>
+          <label>Usuário ou e-mail<input name="email" type="text" placeholder="Seu usuário ou e-mail" autocomplete="username" required></label>
+          <label>Senha<input name="password" type="password" placeholder="Digite sua senha" autocomplete="current-password" minlength="4" required></label>
+          <button class="admin-btn admin-btn-primary admin-login-submit" type="submit">Entrar no painel <span aria-hidden="true">→</span></button>
+          <p class="admin-login-note">Acesso exclusivo à administração da loja.</p>
+          <a class="admin-back-link" href="../">← Voltar para a vitrine</a>
+        </form>
+      </div>
+    </div>
+    <section id="panel" hidden>
+      <div class="admin-panel-heading"><div><p class="admin-eyebrow">TUDO DO SEU JEITO</p><h1>Central de produtos</h1><p>Edite com calma. Salve os rascunhos e publique quando estiver tudo pronto.</p></div><button id="new-product" class="admin-btn admin-btn-primary"><span aria-hidden="true">+</span> Novo produto</button></div>
+      <section class="publish-bar" aria-label="Publicação do catálogo">
+        <div><strong>Da sua central para a vitrine</strong><p id="draft-status" role="status" aria-live="polite">Carregando seus produtos…</p><small>A prévia abaixo inclui produtos ocultos; eles continuam fora da vitrine.</small></div>
+        <div class="publish-actions"><a class="admin-btn admin-btn-secondary" href="../produtos/" target="_blank" rel="noopener">Ver loja ↗</a><button id="discard-catalog" class="admin-btn admin-btn-secondary" type="button" disabled>Descartar rascunhos</button><button id="publish-catalog" class="admin-btn admin-btn-primary" type="button" disabled>Publicar na loja</button></div>
+      </section>
+      <form id="editor" class="admin-form admin-editor" hidden>
+        <div class="admin-editor-heading"><p class="admin-eyebrow">CADA DETALHE CONTA</p><h2 id="editor-title">Novo produto</h2></div>
+        <label>Nome do produto<input name="name" placeholder="Ex.: Caneca com nome" maxlength="200" required></label>
+        <label>Preço (R$)<input name="price" inputmode="decimal" placeholder="39,90" required></label>
+        <label>Categoria<select name="category"><option value="Canecas">Canecas personalizadas</option><option value="Brindes">Brindes personalizados</option><option value="Brinquedos">Brinquedos personalizados</option><option value="Outros">Outros presentes</option></select></label>
+        <label>Foto do produto<input name="photo" type="file" accept="image/png,image/jpeg,image/webp,image/gif"><small>PNG, JPG, WebP ou GIF · até 5 MB</small></label>
+        <label class="admin-full-width">Descrição<textarea name="description" placeholder="Conte o que torna este presente especial…" rows="3" maxlength="5000"></textarea></label>
+        <label class="check-label admin-full-width"><input name="active" type="checkbox" checked> Mostrar este produto na vitrine</label>
+        <div class="admin-actions admin-full-width"><button class="admin-btn admin-btn-primary" type="submit">Salvar rascunho <span aria-hidden="true">✓</span></button><button id="cancel-edit" class="admin-btn admin-btn-secondary" type="button">Cancelar</button></div>
+      </form>
+      <div class="admin-catalog-heading"><h2>Prévia do catálogo</h2><p id="product-count"></p></div>
+      <div id="admin-products" class="admin-product-list"></div>
+    </section>
+    <footer class="admin-footer">Dindinha Presentes <span aria-hidden="true">✳</span> Presentes com a sua história.</footer>
+  </main>
+  <script src="../config.js"></script><script src="../admin/admin.js"></script>
+</body></html>

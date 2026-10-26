@@ -1,11 +1,12 @@
 import { readdirSync, lstatSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
+import { catalogImagePaths } from './catalog-drafts.mjs';
 
 // Called synchronously so a product cannot acquire a reference between checking
 // the database and removing a file. Never follow links or remove unknown files.
 export function cleanUploads(db, directory, now = Date.now()) {
   db.exec('CREATE TABLE IF NOT EXISTS orphan_uploads (filename TEXT PRIMARY KEY, noticed_at INTEGER NOT NULL)');
-  const referenced = new Set(db.prepare('SELECT image_path FROM products WHERE image_path IS NOT NULL').all().map(row => row.image_path));
+  const referenced = catalogImagePaths(db);
   const files = readdirSync(join(directory, 'uploads'));
   const present = new Set(files);
   const forget = db.prepare('DELETE FROM orphan_uploads WHERE filename=?');

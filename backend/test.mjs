@@ -26,6 +26,21 @@ try {
   assert.match(cookie, /HttpOnly/); assert.match(cookie, /SameSite=Strict/);
   const headers = json({ Cookie: cookie.split(';')[0] });
   assert.equal((await request('/auth/session', { headers })).status, 200);
+  // Additional usernames coexist with the owner and use separate sessions.
+  const ownerBefore = app.db.prepare('SELECT * FROM admins WHERE id=1').get();
+  app.db.prepare('INSERT INTO admin_logins VALUES (?, ?)').run('testuser', await hashPassword('1234'));
+  const userLogin = await request('/auth/login', { method: 'POST', headers: json(), body: JSON.stringify({ email: 'TestUser', password: '1234' }) });
+  assert.equal(userLogin.status,200);
+  const userHeaders = json({ Cookie: userLogin.headers.get('set-cookie').split(';')[0] });
+  assert.equal((await (await request('/auth/session',{headers:userHeaders})).json()).login,'testuser');
+  assert.equal((await request('/management/products',{headers:userHeaders})).status,200);
+  assert.deepEqual(app.db.prepare('SELECT * FROM admins WHERE id=1').get(),ownerBefore);
+  const invalidUser = await request('/auth/login',{method:'POST',headers:json(),body:JSON.stringify({email:'testuser',password:'wrong'})});
+  assert.equal(invalidUser.status,401);
+  await request('/auth/logout',{method:'POST',headers:userHeaders});
+  assert.equal((await request('/auth/session',{headers:userHeaders})).status,401);
+  assert.equal((await request('/auth/session',{headers})).status,200);
+
   assert.equal((await request('/admin/products', { method: 'POST', headers: { ...headers, Origin: 'https://outside.test' }, body: JSON.stringify(product) })).status, 403);
   assert.equal((await request('/admin/products', { method: 'POST', headers, body: JSON.stringify({ ...product, price: -1 }) })).status, 400);
   const created = await request('/admin/products', { method: 'POST', headers, body: JSON.stringify(product) });

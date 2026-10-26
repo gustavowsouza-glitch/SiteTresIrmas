@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { openDatabase, hashPassword, verifyPassword } from './database.mjs';
 import { cleanUploads } from './uploads.mjs';
+import { createCatalogDrafts } from './catalog-drafts.mjs';
 
 const categories = ['Canecas', 'Brindes', 'Brinquedos', 'Outros'];
 const sha = value => createHash('sha256').update(value).digest('hex');
@@ -15,6 +16,7 @@ const rowToProduct = row => ({ id: row.id, name: row.name, description: row.desc
 
 export async function createStore({ directory = process.env.DATA_DIR || '/data', origin = process.env.PUBLIC_ORIGIN || 'http://localhost:8080', secureCookie = process.env.COOKIE_SECURE === 'true' } = {}) {
   const db = openDatabase(directory);
+  const drafts = createCatalogDrafts(db, fail);
   const dummyHash = await hashPassword(randomBytes(32).toString('hex'));
   const attempts = new Map();
   const cleanup = () => { try { cleanUploads(db, directory); } catch (error) { console.error('Falha na limpeza de fotos:', error.code || error.name); } };
@@ -70,18 +72,22 @@ export async function createStore({ directory = process.env.DATA_DIR || '/data',
         entry.count++; attempts.set(address, entry);
         const data = await json(request);
         if (typeof data.email !== 'string' || typeof data.password !== 'string' || data.password.length > 1024) fail(400, 'Informe e-mail e senha.');
-        const owner = db.prepare('SELECT * FROM admins WHERE id=1').get();
+        const loginName = data.email.trim().toLowerCase();
+        const owner = db.prepare('SELECT * FROM admins WHERE id=1 AND email=?').get(loginName)
+          || db.prepare('SELECT login, password_hash FROM admin_logins WHERE login=?').get(loginName);
         const valid = await verifyPassword(data.password, owner?.password_hash || dummyHash);
-        if (!owner || owner.email !== data.email.trim().toLowerCase() || !valid) fail(401, 'E-mail ou senha incorretos.');
+        if (!owner || !valid) fail(401, 'Usuário/e-mail ou senha incorretos.');
         attempts.delete(address);
         const token = randomBytes(32).toString('hex');
         db.prepare('DELETE FROM sessions WHERE expires_at<=?').run(now);
-        db.prepare('INSERT INTO sessions VALUES (?, ?)').run(sha(token), now + 8 * 60 * 60 * 1000);
-        return send(response, 200, { email: owner.email, role: 'admin' }, { 'Set-Cookie': cookie(token, 28800) });
+        db.prepare('INSERT INTO sessions (token_hash, expires_at, login) VALUES (?, ?, ?)').run(sha(token), now + 8 * 60 * 60 * 1000, loginName);
+        return send(response, 200, { email: owner.email || null, login: loginName, role: 'admin' }, { 'Set-Cookie': cookie(token, 28800) });
       }
       if (method === 'GET' && path === '/api/auth/session') {
         requireOwner(request);
-        return send(response, 200, { email: db.prepare('SELECT email FROM admins WHERE id=1').get().email, role: 'admin' });
+        const identity = db.prepare('SELECT login FROM sessions WHERE token_hash=?').get(sha(sessionToken(request)))?.login
+          || db.prepare('SELECT email FROM admins WHERE id=1').get()?.email;
+        return send(response, 200, { email: identity?.includes('@') ? identity : null, login: identity, role: 'admin' });
       }
       if (method === 'POST' && path === '/api/auth/logout') {
         const token = sessionToken(request);
@@ -131,6 +137,43 @@ export async function createStore({ directory = process.env.DATA_DIR || '/data',
         const buffer = await readFile(join(directory, 'uploads', imageMatch[1]));
         response.writeHead(200, { 'Content-Type': `image/${imageMatch[2] === 'jpg' ? 'jpeg' : imageMatch[2]}`, 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'public, max-age=86400' });
         return response.end(buffer);
+      }
+      const managementProduct = /^\/api\/management\/products\/([a-f0-9-]{36})$/.exec(path);
+      if (path === '/api/management/products' || managementProduct || path === '/api/management/publish' || path === '/api/management/catalog') {
+        requireOwner(request);
+        const output = state => ({ products: state.rows.map(rowToProduct), revision: state.revision, pending: state.pending, conflict: state.conflict });
+        const checkPhoto = row => {
+          if (row.image_path) { try { if (!statSync(join(directory, 'uploads', row.image_path)).isFile()) throw new Error(); } catch { fail(400, 'Uma foto do rascunho não está disponível. Edite o produto e envie a foto novamente.'); } }
+        };
+        if (method === 'GET' && path === '/api/management/products') return send(response, 200, output(drafts.state()));
+        if (method === 'POST' && path === '/api/management/publish') {
+          const data = await json(request);
+          const result = drafts.publish(data?.revision, checkPhoto);
+          cleanup(); return send(response, 200, output(result));
+        }
+        if (method === 'DELETE' && path === '/api/management/catalog') {
+          const data = await json(request);
+          const result = drafts.discard(data?.revision);
+          cleanup(); return send(response, 200, output(result));
+        }
+        if ((path === '/api/management/products' && method === 'POST') || (managementProduct && ['PATCH', 'DELETE'].includes(method))) {
+          const input = await json(request);
+          const id = managementProduct?.[1] || randomUUID();
+          const data = method === 'DELETE' ? null : validate(input);
+          if (data) checkPhoto(data);
+          const result = drafts.write(input?.revision, rows => {
+            const index = rows.findIndex(row => row.id === id);
+            if (managementProduct && index < 0) fail(404, 'Produto não encontrado no rascunho.');
+            if (method === 'DELETE') return rows.filter(row => row.id !== id);
+            const row = { id, name: data.name, description: data.description, category: data.category,
+              price_cents: data.price_cents, active: data.active ? 1 : 0, image_path: data.image_path,
+              created_at: index >= 0 ? rows[index].created_at : new Date().toISOString() };
+            if (index >= 0) rows[index] = row; else rows.push(row);
+            return rows;
+          });
+          cleanup(); return send(response, method === 'POST' ? 201 : 200, output(result));
+        }
+        fail(405, 'Método não permitido.');
       }
       const productMatch = /^\/api\/admin\/products\/([a-f0-9-]{36})$/.exec(path);
       if ((method === 'POST' && path === '/api/admin/products') || (productMatch && ['PATCH', 'DELETE'].includes(method))) {

@@ -1,0 +1,75 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtemp, rm, readFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { once } from 'node:events';
+import { createStore } from './server.mjs';
+import { hashPassword } from './database.mjs';
+import { cleanUploads } from './uploads.mjs';
+import { createBackup } from './backup.mjs';
+
+test('drafts stay private, survive restart, preserve photos and publish atomically with conflict checks', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'catalog-draft-test-'));
+  const destination = await mkdtemp(join(tmpdir(), 'catalog-backup-test-'));
+  let app, base;
+  async function start() { app = await createStore({ directory }); app.server.listen(0, '127.0.0.1'); await once(app.server, 'listening'); base = `http://127.0.0.1:${app.server.address().port}/api`; }
+  async function stop() { await new Promise(resolve => app.server.close(resolve)); app.db.close(); }
+  await start();
+  const headers = { 'Content-Type': 'application/json' };
+  const req = (path, method='GET', body, auth=true) => fetch(base + path, { method, headers: auth ? headers : { 'Content-Type': 'application/json' }, ...(body ? { body: JSON.stringify(body) } : {}) });
+  const state = async () => (await req('/management/products')).json();
+  const live = async () => (await req('/products')).json();
+  const payload = product => ({ name: product.name, description: product.description, category: product.category, price: product.price, active: product.active, image_path: product.image_path });
+  try {
+    for (const [path, method] of [['/management/products','GET'],['/management/products','POST'],['/management/publish','POST'],['/management/catalog','DELETE']]) assert.equal((await req(path,method,method==='GET'?null:{},false)).status,401);
+    app.db.prepare('INSERT INTO admins VALUES (1, ?, ?)').run('draft@example.test', await hashPassword('Temporary-test-secret'));
+    const login = await req('/auth/login','POST',{ email:'draft@example.test', password:'Temporary-test-secret' });
+    headers.Cookie = login.headers.get('set-cookie').split(';')[0];
+    const initial = await live(), first = initial[0], removed = initial[1];
+    let current = await state(); assert.equal(current.pending,false);
+    const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=','base64');
+    const upload = await fetch(base+'/uploads',{method:'POST',headers:{Cookie:headers.Cookie,'Content-Type':'image/png'},body:png});
+    const photo = await upload.json();
+    const edited = { ...payload(first), name:'Mudanca temporaria', price:17.35, image_path:photo.image_path, revision:current.revision };
+    assert.equal((await req(`/management/products/${first.id}`,'PATCH',edited)).status,200);
+    current = await state(); assert.equal(current.pending,true);
+    assert.equal((await live()).find(p=>p.id===first.id).name,first.name);
+    const quote = await (await req('/cart/quote','POST',{items:[{id:first.id,quantity:2,personalization:''}]})).json();
+    assert.equal(quote.subtotal,first.price*2);
+    assert.equal((await req(`/management/products/${first.id}`,'PATCH',edited)).status,409);
+    assert.equal((await req('/management/publish','POST',{revision:edited.revision})).status,409);
+    assert.equal((await req(`/management/products/${first.id}`,'PATCH',{...edited,price:-1,revision:current.revision})).status,400);
+    const outsider = await fetch(base+'/management/publish',{method:'POST',headers:{...headers,Origin:'https://outside.test'},body:JSON.stringify({revision:current.revision})});
+    assert.equal(outsider.status,403);
+    cleanUploads(app.db,directory,0); cleanUploads(app.db,directory,86400001);
+    assert.deepEqual(await readFile(join(directory,'uploads',photo.image_path)),png);
+    const backup = await createBackup(directory,destination);
+    assert.deepEqual(await readFile(join(backup,'uploads',photo.image_path)),png);
+    await stop(); await start(); current = await state();
+    assert.equal(current.products.find(p=>p.id===first.id).price,17.35);
+    assert.equal((await req(`/management/products/${removed.id}`,'DELETE',{revision:current.revision})).status,200);
+    assert.ok((await live()).some(p=>p.id===removed.id)); current=await state();
+    assert.equal((await req('/management/products','POST',{name:'Novo oculto',description:'Teste',category:'Outros',price:9.99,active:false,image_path:null,revision:current.revision})).status,201);
+    current=await state(); assert.equal((await live()).some(p=>p.name==='Novo oculto'),false);
+    app.db.exec("CREATE TRIGGER fail_test BEFORE INSERT ON products WHEN NEW.name='Mudanca temporaria' BEGIN SELECT RAISE(ABORT, 'temporary test failure'); END;");
+    assert.equal((await req('/management/publish','POST',{revision:current.revision})).status,500);
+    assert.equal((await live()).find(p=>p.id===first.id).name,first.name);
+    assert.equal((await state()).pending,true); app.db.exec('DROP TRIGGER fail_test');
+    assert.equal((await req('/management/publish','POST',{revision:current.revision})).status,200);
+    current=await state(); assert.equal(current.pending,false);
+    assert.equal((await live()).find(p=>p.id===first.id).price,17.35);
+    assert.equal((await live()).some(p=>p.id===removed.id),false);
+    assert.equal((await live()).some(p=>p.name==='Novo oculto'),false);
+    assert.equal((await req('/management/publish','POST',{revision:current.revision})).status,409);
+    const published=(await live()).find(p=>p.id===first.id);
+    assert.equal((await req(`/management/products/${first.id}`,'PATCH',{...payload(published),price:24,revision:current.revision})).status,200);
+    current=await state();
+    assert.equal((await req(`/admin/products/${first.id}`,'PATCH',{...payload(published),price:31})).status,200);
+    assert.equal((await state()).conflict,true);
+    assert.equal((await req('/management/publish','POST',{revision:current.revision})).status,409);
+    assert.equal((await live()).find(p=>p.id===first.id).price,31);
+    assert.equal((await req('/management/catalog','DELETE',{revision:current.revision})).status,200);
+    assert.equal((await state()).pending,false); assert.equal((await state()).products.find(p=>p.id===first.id).price,31);
+  } finally { if(app.server.listening) await stop(); await rm(directory,{recursive:true,force:true}); await rm(destination,{recursive:true,force:true}); }
+});
