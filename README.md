@@ -2,7 +2,17 @@
 
 Loja de presentes personalizados com vitrine, carrinho e painel administrativo. O projeto usa frontend estático, API Node.js 24, banco SQLite e Docker Compose. O catálogo, o acesso administrativo e as fotos funcionam no backend local, independentemente do Lovable.
 
-## Mudanças recentes — 22/10/2026
+## Mudanças recentes — 26/10/2026
+
+- Criada a **Central de produtos** em `/gestao/`, separada da vitrine e com acesso administrativo.
+- Adicionado o fluxo **Salvar rascunho → Conferir a prévia → Publicar na loja**, para editar nomes, preços, categorias, fotos, descrições e visibilidade antes de atualizar a vitrine.
+- Inclusões, edições e remoções ficam pendentes até publicar. É possível descartar os rascunhos sem alterar o catálogo publicado.
+- Rascunhos persistem no banco após reiniciar o Docker. Fotos usadas nos rascunhos são preservadas pela limpeza automática e incluídas nos backups.
+- Publicação protegida contra versões desatualizadas entre abas e alterações feitas diretamente no painel `/admin/`.
+- Login atualizado para aceitar **usuário ou e-mail**. Criado o acesso adicional local `gustavo`, preservando a conta proprietária existente. A senha não é registrada neste documento.
+- Validados o acesso adicional, a preservação da conta anterior e o fluxo de publicação com banco e fotos temporários.
+
+## Mudanças anteriores — 22/10/2026
 
 - Removidos os quatro atalhos de categorias do cabeçalho. As categorias continuam no catálogo e na página inicial.
 - Adicionada `/minhas-compras/` no menu e nas abas das listas: histórico local dos últimos 50 pedidos iniciados pelo botão de WhatsApp, com referência, data, itens, personalização e subtotal da ocasião. Não confirma mensagem enviada, pagamento, compra ou andamento; esses detalhes dependem da loja. Pedidos anteriores à implementação não são recuperados automaticamente.
@@ -23,25 +33,28 @@ Loja de presentes personalizados com vitrine, carrinho e painel administrativo. 
 
 ## Central de produtos com publicação
 
-Acesse http://localhost:8080/gestao/ e entre com a mesma conta da administração.
+Acesse http://localhost:8080/gestao/ e entre com uma conta administrativa. O acesso adicional `gustavo` também pode ser usado aqui.
+
+| Página | Para que usar | Quando a vitrine muda |
+| --- | --- | --- |
+| `/` e `/produtos/` | Consultar a loja e os produtos publicados | Ao recarregar ou consultar o catálogo após uma publicação |
+| `/gestao/` | Preparar e conferir alterações dos produtos | Somente ao clicar em **Publicar na loja** |
+| `/admin/` | Administrar produtos diretamente | Ao salvar ou excluir um produto |
+
+Para o uso do dia a dia com revisão antes de enviar, prefira `/gestao/`.
 
 1. Clique em **Novo produto** ou **Editar produto** e altere nome, preço, categoria, foto ou descrição.
 2. Clique em **Salvar rascunho**. A prévia da central é atualizada, mas a vitrine continua com os dados publicados.
 3. Confira os produtos e clique em **Publicar na loja** para enviar todas as alterações de uma vez. As remoções do rascunho também são aplicadas nessa publicação.
 4. Atualize a vitrine aberta para conferir os dados novos. Novas consultas e cotações usam o catálogo publicado.
 
-**Descartar rascunhos** abandona apenas as alterações pendentes. Produtos ocultos continuam fora da vitrine, mesmo após publicar. O rascunho é compartilhado pela conta administrativa e fica salvo no banco, inclusive após reiniciar o Docker; suas fotos também entram na limpeza protegida e nos backups.
+**Descartar rascunhos** abandona apenas as alterações pendentes. Produtos ocultos continuam fora da vitrine, mesmo após publicar. O rascunho é compartilhado entre os acessos administrativos e fica salvo no banco, inclusive após reiniciar o Docker; suas fotos também entram na limpeza protegida e nos backups.
 
 O painel `/admin/` mantém seu comportamento de salvar diretamente na loja. Prefira `/gestao/` para preparar alterações antes de publicar. Se alguém usar o painel direto enquanto houver rascunhos, a central bloqueia a publicação para evitar sobrescrever a versão atual. Descarte os rascunhos, confira o catálogo atual e refaça as edições necessárias. Duas abas com versões diferentes também recebem aviso para atualizar antes de salvar.
 
 Essa publicação atualiza somente o catálogo desta instalação local. Não envia alterações para o Lovable nem publica o site na internet. Nome da loja e textos da página inicial permanecem como estão.
 
-Teste da publicação, usando banco temporário:
-
-```powershell
-docker compose build api
-docker run --rm --network none irmas-coqueiro-api node --test catalog-drafts.test.mjs maintenance.test.mjs ui-regression.test.mjs shop-core.test.mjs
-```
+Os comandos de validação estão na seção **Testes**. Eles usam banco e arquivos temporários.
 
 ## Iniciar
 
@@ -52,7 +65,8 @@ docker compose up -d --build --wait
 ```
 
 - Vitrine: http://localhost:8080
-- Administração: http://localhost:8080/admin/
+- Central de produtos (rascunhos e publicação): http://localhost:8080/gestao/
+- Administração direta: http://localhost:8080/admin/
 - Prévia no Lovable: [Visualizar Dindinha Presentes](https://lovable.dev/preview/eUgGySETCqG6l0DPgEGRnQ8SQKzDAVIj)
 
 Para abrir a vitrine pelo PowerShell:
@@ -96,6 +110,15 @@ O acesso fica disponível somente neste computador, pela porta `127.0.0.1:8080`.
 
 ## Administrador
 
+Para entrar na central:
+
+1. Abra http://localhost:8080/gestao/.
+2. No campo **Usuário ou e-mail**, informe seu acesso. O usuário adicional criado nesta instalação é `gustavo`.
+3. Digite a senha definida para a conta e clique em **Entrar no painel**.
+4. Se aparecer o formulário antigo, atualize com **Ctrl + F5**.
+
+O usuário adicional possui permissão administrativa sobre o mesmo catálogo. A conta proprietária anterior continua válida. Os acessos ficam no banco local: clonar o repositório em outra máquina não recria automaticamente as contas. Um backup completo do banco também preserva essas contas; as senhas ficam armazenadas como hash, não como texto.
+
 A conta proprietária é criada por `backend/bootstrap-admin.mjs`, que recebe JSON com `email` e `password` pela entrada padrão. A senha deve ter no mínimo 12 caracteres. O script recusa sobrescrever uma conta existente. Não existe cadastro público, e clientes não precisam entrar na loja. O formulário também aceita nomes de usuário para acessos administrativos adicionais, criados localmente por `backend/create-login.mjs`. Esses acessos compartilham a administração do catálogo e possuem sessões independentes; a conta proprietária por e-mail é preservada. Senhas não devem ser gravadas neste README ou no Git.
 
 O administrador gerencia nome, categoria, descrição, preço, foto e visibilidade dos produtos. Os preços são armazenados em centavos. Fotos podem ser PNG, JPG, WebP ou GIF até 5 MB. A API exige sessão válida para todas as alterações e para listar produtos ocultos. A senha é armazenada com salt e hash scrypt. O cookie de sessão é HttpOnly e SameSite=Strict, dura 8 horas e é invalidado no logout.
@@ -108,11 +131,11 @@ O banco e as fotos ficam no volume `irmas-coqueiro_store-data`. Reiniciar ou rec
 
 O backend identifica fotos enviadas que não são referenciadas por nenhum produto. A exclusão só acontece após pelo menos 24 horas desde essa identificação; não é baseada apenas na data de criação do arquivo. A verificação roda ao iniciar a API, a cada hora e após salvar ou excluir produtos.
 
-Fotos de produtos ocultos e imagens compartilhadas por vários produtos são preservadas. Se uma foto voltar a ser usada antes da exclusão, a marcação de abandono é removida. Arquivos desconhecidos e links simbólicos não são apagados. A limpeza atua em `/data/uploads`, sem modificar as imagens estáticas em `site/assets/` nem as cópias de backup.
+Fotos de produtos ocultos, fotos dos rascunhos e imagens compartilhadas por vários produtos são preservadas. Se uma foto voltar a ser usada antes da exclusão, a marcação de abandono é removida. Arquivos desconhecidos e links simbólicos não são apagados. A limpeza atua em `/data/uploads`, sem modificar as imagens estáticas em `site/assets/` nem as cópias de backup.
 
 ## Backup e restauração
 
-O serviço `backup` cria uma cópia ao iniciar e agenda a próxima para 24 horas após a conclusão, enquanto estiver rodando. Os arquivos ficam em `./backups`, fora do volume do banco; uma falha gera mensagem nos logs e nova tentativa após uma hora. Cada cópia verifica a integridade do SQLite e inclui apenas as fotos referenciadas naquele banco, inclusive as de produtos ocultos. Pastas `.partial` indicam tentativas incompletas e não devem ser usadas na restauração. Não há exclusão automática de backups: acompanhe o espaço ocupado por essa pasta.
+O serviço `backup` cria uma cópia ao iniciar e agenda a próxima para 24 horas após a conclusão, enquanto estiver rodando. Os arquivos ficam em `./backups`, fora do volume do banco; uma falha gera mensagem nos logs e nova tentativa após uma hora. Cada cópia verifica a integridade do SQLite e inclui apenas as fotos referenciadas naquele banco, inclusive as de produtos ocultos e dos rascunhos. Pastas `.partial` indicam tentativas incompletas e não devem ser usadas na restauração. Não há exclusão automática de backups: acompanhe o espaço ocupado por essa pasta.
 
 Para uma cópia imediata na pasta do computador:
 
@@ -130,7 +153,7 @@ docker compose exec -T api node backup.mjs
 docker compose cp api:/data/backups ./backups
 ```
 
-Uma pasta de backup concluído contém `store.sqlite` e `uploads/`. Os nomes usam data e hora UTC e um identificador único. Para restaurar, pare os serviços, preserve uma cópia dos dados atuais, substitua o banco e a pasta de uploads no volume pelo conjunto do backup e reinicie os serviços. Não misture arquivos `store.sqlite-wal` ou `store.sqlite-shm` da versão anterior com o banco restaurado. A restauração também recupera a conta administrativa e os dados existentes na data daquela cópia.
+Uma pasta de backup concluído contém `store.sqlite` e `uploads/`. Os nomes usam data e hora UTC e um identificador único. Para restaurar, pare os serviços, preserve uma cópia dos dados atuais, substitua o banco e a pasta de uploads no volume pelo conjunto do backup e reinicie os serviços. Não misture arquivos `store.sqlite-wal` ou `store.sqlite-shm` da versão anterior com o banco restaurado. A restauração também recupera as contas administrativas, os produtos publicados e os rascunhos existentes na data daquela cópia.
 
 ## Operação
 
@@ -149,20 +172,22 @@ Execute depois de reconstruir a imagem com os arquivos atuais:
 
 ```powershell
 docker compose build api
-docker compose run --rm --no-deps api node test.mjs
-docker compose run --rm --no-deps api node --test shop-core.test.mjs maintenance.test.mjs ui-regression.test.mjs
+docker run --rm --network none irmas-coqueiro-api node test.mjs
+docker run --rm --network none irmas-coqueiro-api node --test catalog-drafts.test.mjs shop-core.test.mjs maintenance.test.mjs ui-regression.test.mjs
 ```
 
 Os testes usam banco e arquivos temporários, sem modificar produtos reais:
 
 | Arquivo | Cobertura |
 | --- | --- |
-| `backend/test.mjs` | Login, sessão, bloqueio de visitantes, origem das requisições, criação/edição/exclusão, fotos, persistência, produtos ocultos, detalhes e preços calculados no servidor |
+| `backend/test.mjs` | Login por e-mail e usuário, sessões independentes, preservação da conta proprietária, bloqueio de visitantes, origem das requisições, criação/edição/exclusão, fotos, persistência, produtos ocultos, detalhes e preços calculados no servidor |
 | `site/shop-core.test.mjs` | Validação do carrinho, limites, personalizações e resumo para WhatsApp |
 | `backend/maintenance.test.mjs` | Prazo de limpeza, preservação de fotos em uso, backup válido e cópias incompletas |
-| `backend/ui-regression.test.mjs` | Salvamento com envio de foto pendente e mudança do carrinho ou navegação durante a cotação |
+| `backend/ui-regression.test.mjs` | Salvamento com foto pendente, botões de rascunho/publicação e mudança do carrinho ou navegação durante a cotação |
+| `backend/catalog-drafts.test.mjs` | Rascunhos separados da vitrine, persistência, fotos, backups, publicação atômica, descarte e conflitos de versão |
 
-Na validação das correções em 22/10/2026, a integração passou. Após a inclusão de Minhas compras, os 14 testes das demais suítes passaram, incluindo validação e persistência do histórico, busca, filtros de categoria/preço, ordenação, limpeza dos filtros na URL, validação e persistência de favoritos, migração de carrinhos antigos e cotação apenas dos itens selecionados. Os testes de interface simulam os elementos e as respostas de rede em Node.js; não substituem uma conferência visual no navegador e no celular.
+Na validação de 26/10/2026, o teste de integração passou, incluindo o novo login por usuário. As demais suítes passaram com **16 testes**, cobrindo também rascunhos, publicação, persistência e preservação das fotos. Os testes de interface simulam elementos e respostas de rede em Node.js; não substituem a conferência visual no navegador e no celular. Os contêineres de teste não montam o volume real da loja.
+
 
 ## Estrutura
 
@@ -173,10 +198,13 @@ Na validação das correções em 22/10/2026, a integração passou. Após a inc
 - `site/marketplace.css`: organização da vitrine em formato de marketplace, busca do cabeçalho, filtros e adaptação para celular, sem alterar o visual do painel.
 - `site/theme.js`: seleção do tema, preferência do sistema e escolha salva no navegador.
 - `site/config.js`: WhatsApp e endereço relativo `/api`.
-- `site/admin/`: login e editor de produtos.
+- `site/admin/`: login e editor direto de produtos; o JavaScript também atende a central no modo rascunho.
+- `site/gestao/`: página da central de produtos, prévia do catálogo e botões de publicação e descarte.
 - `backend/`: API, banco, importação inicial, criação do dono, backup e testes.
 - `backend/seed.json`: três produtos públicos recuperados do original em 20/10/2026. A importação ocorre uma única vez, sem repor produtos excluídos.
-- `backend/uploads.mjs`: identificação e limpeza de fotos sem referência.
+- `backend/catalog-drafts.mjs`: armazenamento dos rascunhos, controle de versões e publicação do catálogo.
+- `backend/create-login.mjs`: criação local de acessos administrativos adicionais por usuário, sem substituir contas existentes.
+- `backend/uploads.mjs`: identificação e limpeza de fotos sem referência, preservando produtos publicados e rascunhos.
 - `backend/backup.mjs`: cópia verificada do banco e das fotos em uso.
 - `backend/backup-service.mjs`: execução periódica e repetição após falhas de backup.
 - `backend/*test.mjs` e `site/shop-core.test.mjs`: testes de integração e regressão.
