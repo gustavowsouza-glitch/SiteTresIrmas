@@ -17,6 +17,24 @@ Start-Process 'http://localhost:8080'
 
 Use HTTP; abrir `site/index.html` por `file://` não reproduz módulos, API e navegação corretamente. O Node.js do backend roda no container, sem exigir instalação local para esse fluxo.
 
+## Escolher e registrar uma branch
+
+Antes de editar, consulte o [guia de branches](branches/README.md): use `designer` para visual, `bugs` para correções e `teste` para experimentos/validação. A `main` reúne os trabalhos revisados. Confira `git status` antes de trocar e mantenha tarefas independentes separadas.
+
+Para criar e registrar uma branch específica a partir da `main` local:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\nova-branch.ps1 -Nome 'visual-cabecalho' -Finalidade 'Melhorar o cabeçalho em telas pequenas' -Base 'main'
+```
+
+Depois entre nela:
+
+```powershell
+git switch visual-cabecalho
+```
+
+O script não troca de branch nem envia ao remoto. Inclua `docs/branches/README.md` no commit da tarefa. Se criar uma branch por outro meio, faça o registro manualmente. Atualize sua situação ao concluir. Desenvolvedores e IAs seguem o mesmo fluxo; veja também [AGENTS.md](../AGENTS.md).
+
 ## Tutorial 1: mudar banner, cores ou logo
 
 1. Localize o HTML do componente em `site/index.html` ou a função de página em `site/storefront.js`. O banner inicial é renderizado por `home()`.

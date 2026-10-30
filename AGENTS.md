@@ -8,6 +8,15 @@ Este repositório contém a **Dindinha Presentes**, uma loja local com Docker, f
 2. Consulte [arquitetura](docs/arquitetura.md) e os arquivos envolvidos antes de editar.
 3. Confira `git status --short` e preserve alterações preexistentes.
 4. Use [desenvolvimento](docs/desenvolvimento.md) para implementar e validar a mudança.
+5. Consulte o [guia de branches](docs/branches/README.md) para escolher o destino do trabalho. Respeite a branch solicitada e preserve alterações antes de trocar.
+
+## Branches e registro
+
+- `main`: referência revisada; `teste`: experimentos e validação; `designer`: interface e visual; `bugs`: correções de comportamento.
+- Ao criar uma branch, use `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\nova-branch.ps1 -Nome 'nome-da-tarefa' -Finalidade 'Objetivo concreto' -Base 'main'`, ajustando a base ao trabalho. A política vale só para esse processo. O script cria e registra a branch, sem trocar a atual nem fazer commit/push.
+- Se criar por outro meio, registre manualmente em `docs/branches/README.md` o nome, a finalidade, a base/commit conhecidos, a data e a situação. Não invente informações históricas.
+- Inclua o registro no commit da tarefa e atualize a situação ao concluir ou renomear. O documento só chega às demais branches quando integrado pelo Git.
+- Não faça merge, exclusão, publicação ou descarte de alterações como consequência automática dessas convenções. Branches não isolam o banco Docker.
 
 ## Convenções do projeto
 

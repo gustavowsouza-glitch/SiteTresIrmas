@@ -6,6 +6,7 @@ Documentação conferida com o código em **30/10/2026**. Comece por este índic
 | --- | --- |
 | [Arquitetura e funcionamento](arquitetura.md) | Serviços, arquivos, páginas e fluxo dos dados |
 | [Tutorial de desenvolvimento](desenvolvimento.md) | Preparar ambiente, alterar visual, criar página/campo e testar |
+| [Guia e registro de branches](branches/README.md) | Escolher entre main, teste, designer e bugs; criar e documentar novas branches |
 | [API e dados](api-e-dados.md) | Endpoints, payloads, banco, autenticação e regras |
 | [Acessos administrativos](acessos-administrativos.md) | Solicitação de conta, decisão exclusiva do proprietário e configuração de e-mail |
 | [Operação e diagnóstico](operacao.md) | Backup, preservação de dados, problemas comuns e Lovable |

@@ -6,6 +6,8 @@ Loja de presentes personalizados com vitrine, carrinho e painel administrativo. 
 
 Comece pelo [índice da documentação técnica](docs/README.md). Ele reúne a arquitetura, os tutoriais de alteração, a referência da API e do banco, os testes e os procedimentos de operação. Agentes de IA também devem consultar [AGENTS.md](AGENTS.md), com as convenções para trabalhar neste repositório.
 
+O [guia de branches](docs/branches/README.md) explica quando usar `main`, `teste`, `designer` e `bugs`. Novas branches podem ser criadas e registradas com `scripts/nova-branch.ps1`; o guia inclui os comandos e o fluxo de revisão.
+
 ## Revisão e correções — 30/10/2026
 
 - Busca compacta e controles de preço/ordenação refinados no catálogo, com menus nas cores da loja, indicação da opção ativa e navegação por teclado. Os filtros e a limpeza continuam sincronizados com a URL.
