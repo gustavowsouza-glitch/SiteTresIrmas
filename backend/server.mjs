@@ -38,7 +38,11 @@ export async function createStore({ directory = process.env.DATA_DIR || '/data',
   }
   async function json(request) {
     if (!request.headers['content-type']?.startsWith('application/json')) fail(415, 'Envie conteúdo JSON.');
-    try { return JSON.parse((await bytes(request, 20000)).toString('utf8')); }
+    try {
+      const data = JSON.parse((await bytes(request, 20000)).toString('utf8'));
+      if (!data || typeof data !== 'object' || Array.isArray(data)) fail(400, 'Envie um objeto JSON válido.');
+      return data;
+    }
     catch (error) { if (error instanceof HttpError) throw error; fail(400, 'Conteúdo inválido.'); }
   }
   function send(response, status, body, extra = {}) {
@@ -179,10 +183,12 @@ export async function createStore({ directory = process.env.DATA_DIR || '/data',
       if ((method === 'POST' && path === '/api/admin/products') || (productMatch && ['PATCH', 'DELETE'].includes(method))) {
         requireOwner(request);
         const id = productMatch?.[1] || randomUUID();
-        if (productMatch && !db.prepare('SELECT id FROM products WHERE id=?').get(id)) fail(404, 'Produto não encontrado.');
-        if (method === 'DELETE') { db.prepare('DELETE FROM products WHERE id=?').run(id); cleanup(); return send(response, 200, { ok: true }); }
+        const requireProduct = () => { if (productMatch && !db.prepare('SELECT id FROM products WHERE id=?').get(id)) fail(404, 'Produto não encontrado.'); };
+        if (method === 'DELETE') { requireProduct(); db.prepare('DELETE FROM products WHERE id=?').run(id); cleanup(); return send(response, 200, { ok: true }); }
         const data = validate(await json(request));
-        if (data.image_path) { try { statSync(join(directory, 'uploads', data.image_path)); } catch { fail(400, 'Envie a foto antes de salvar.'); } }
+        // Recheck after reading the body: another tab may have deleted the row.
+        requireProduct();
+        if (data.image_path) { try { if (!statSync(join(directory, 'uploads', data.image_path)).isFile()) throw new Error(); } catch { fail(400, 'Envie a foto antes de salvar.'); } }
         if (method === 'POST') db.prepare('INSERT INTO products VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(id, data.name, data.description, data.category, data.price_cents, data.active ? 1 : 0, data.image_path, new Date().toISOString());
         else db.prepare('UPDATE products SET name=?, description=?, category=?, price_cents=?, active=?, image_path=? WHERE id=?').run(data.name, data.description, data.category, data.price_cents, data.active ? 1 : 0, data.image_path, id);
         cleanup();

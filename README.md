@@ -2,7 +2,19 @@
 
 Loja de presentes personalizados com vitrine, carrinho e painel administrativo. O projeto usa frontend estático, API Node.js 24, banco SQLite e Docker Compose. O catálogo, o acesso administrativo e as fotos funcionam no backend local, independentemente do Lovable.
 
-## Mudanças recentes — 26/10/2026
+## Guia para desenvolvedores e IAs
+
+Comece pelo [índice da documentação técnica](docs/README.md). Ele reúne a arquitetura, os tutoriais de alteração, a referência da API e do banco, os testes e os procedimentos de operação. Agentes de IA também devem consultar [AGENTS.md](AGENTS.md), com as convenções para trabalhar neste repositório.
+
+## Revisão e correções — 30/10/2026
+
+- A API passa a recusar JSON `null`, listas e valores simples com erro de validação (400), evitando falha interna no login e mantendo respostas consistentes nos demais endpoints.
+- Ao salvar uma edição direta no painel, a existência do produto é verificada depois de receber os dados. Se outra aba o excluir durante o envio, a resposta é “Produto não encontrado” (404), sem tentar devolver um registro inexistente.
+- A validação de fotos do painel direto exige um arquivo, assim como a central de rascunhos; pastas com nome de imagem são recusadas.
+- Os testes de integração incluem requisições inválidas, foto inválida e edição lenta simultânea à exclusão, usando apenas banco e uploads temporários.
+- Validação da revisão: integração aprovada e 16 testes aprovados nas suítes de carrinho, histórico, favoritos, interface, manutenção e rascunhos/publicação. O teste de publicação provoca uma falha de SQLite intencionalmente para verificar a reversão da transação; essa mensagem esperada não indica falha na suíte.
+
+## Mudanças anteriores — 26/10/2026
 
 - Criada a **Central de produtos** em `/gestao/`, separada da vitrine e com acesso administrativo.
 - Adicionado o fluxo **Salvar rascunho → Conferir a prévia → Publicar na loja**, para editar nomes, preços, categorias, fotos, descrições e visibilidade antes de atualizar a vitrine.

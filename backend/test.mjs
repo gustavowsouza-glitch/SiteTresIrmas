@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { once } from 'node:events';
+import { request as httpRequest } from 'node:http';
 import { createStore } from './server.mjs';
 import { hashPassword } from './database.mjs';
 
@@ -16,6 +17,10 @@ try {
   const request = (path, options = {}) => fetch(base + path, options);
   const product = { name: 'Produto de teste', description: 'Descrição', category: 'Outros', price: 12.35, active: false, image_path: null };
   const json = value => ({ 'Content-Type': 'application/json', ...value });
+  for (const input of [null, [], 'texto']) {
+    assert.equal((await request('/auth/login', { method: 'POST', headers: json(), body: JSON.stringify(input) })).status, 400);
+    assert.equal((await request('/cart/quote', { method: 'POST', headers: json(), body: JSON.stringify(input) })).status, 400);
+  }
   assert.equal((await (await request('/products')).json()).length, 3);
   for (const [path, method] of [['/admin/products','GET'],['/admin/products','POST'],['/admin/products/52748a7e-7569-4311-9087-c379bec01745','PATCH'],['/admin/products/52748a7e-7569-4311-9087-c379bec01745','DELETE'],['/uploads','POST']]) assert.equal((await request(path, { method })).status, 401);
   const badLogin = await request('/auth/login', { method: 'POST', headers: json(), body: JSON.stringify({ email: 'owner@example.test', password: 'incorrect' }) });
@@ -25,6 +30,21 @@ try {
   const cookie = login.headers.get('set-cookie');
   assert.match(cookie, /HttpOnly/); assert.match(cookie, /SameSite=Strict/);
   const headers = json({ Cookie: cookie.split(';')[0] });
+  const directoryPhoto = '11111111-1111-4111-8111-111111111111.png';
+  await mkdir(join(directory, 'uploads', directoryPhoto));
+  assert.equal((await request('/admin/products', { method: 'POST', headers, body: JSON.stringify({ ...product, image_path: directoryPhoto }) })).status, 400);
+  const temporary = await (await request('/admin/products', { method: 'POST', headers, body: JSON.stringify(product) })).json();
+  const slowBody = JSON.stringify({ ...product, name: 'Edição em andamento' });
+  const received = once(app.server, 'request');
+  const slowEdit = httpRequest(`${base}/admin/products/${temporary.id}`, { method: 'PATCH', headers: { ...headers, 'Content-Length': Buffer.byteLength(slowBody) } });
+  const slowResponse = once(slowEdit, 'response');
+  slowEdit.write(slowBody.slice(0, 5));
+  await received;
+  assert.equal((await request(`/admin/products/${temporary.id}`, { method: 'DELETE', headers })).status, 200);
+  slowEdit.end(slowBody.slice(5));
+  const [deletedResponse] = await slowResponse;
+  assert.equal(deletedResponse.statusCode, 404);
+  for await (const chunk of deletedResponse) { /* Drain the test response. */ }
   assert.equal((await request('/auth/session', { headers })).status, 200);
   // Additional usernames coexist with the owner and use separate sessions.
   const ownerBefore = app.db.prepare('SELECT * FROM admins WHERE id=1').get();
