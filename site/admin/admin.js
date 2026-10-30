@@ -71,9 +71,9 @@
   login.addEventListener('submit', event => {
     event.preventDefault();
     busy(login, async () => {
-      await request('/auth/login', { method: 'POST', body: JSON.stringify({ email: login.elements.email.value.trim(), password: login.elements.password.value }) });
+      const identity = await request('/auth/login', { method: 'POST', body: JSON.stringify({ email: login.elements.email.value.trim(), password: login.elements.password.value }) });
       login.elements.password.value = '';
-      await showPanel();
+      await showPanel(identity);
     });
   });
   $('#logout').addEventListener('click', async () => {
@@ -160,13 +160,14 @@
       updatePublishing();
     });
   });
-  async function showPanel() {
+  async function showPanel(identity) {
     await loadProducts();
+    const ownerLink = $('#owner-access-link'); if (ownerLink) ownerLink.hidden = !identity?.isOwner;
     login.hidden = true; $('#login-view').hidden = true; panel.hidden = false; $('#logout').hidden = false;
   }
   async function restoreSession() {
     login.querySelector('button[type="submit"]').disabled = true;
-    try { await request('/auth/session'); await showPanel(); }
+    try { const identity = await request('/auth/session'); await showPanel(identity); }
     catch (error) { if (error.status !== 401) message(error.message); }
     finally { login.querySelector('button[type="submit"]').disabled = false; }
   }

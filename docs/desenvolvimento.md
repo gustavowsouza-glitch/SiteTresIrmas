@@ -74,7 +74,7 @@ Reconstrua a imagem para que os testes usem o código novo:
 ```powershell
 docker compose build api
 docker run --rm --network none irmas-coqueiro-api node test.mjs
-docker run --rm --network none irmas-coqueiro-api node --test catalog-drafts.test.mjs shop-core.test.mjs maintenance.test.mjs ui-regression.test.mjs
+docker run --rm --network none irmas-coqueiro-api node --test access-requests.test.mjs catalog-drafts.test.mjs shop-core.test.mjs maintenance.test.mjs ui-regression.test.mjs
 ```
 
 Esses comandos não montam o volume da loja. As suítes criam bancos e uploads temporários; `--network none` mantém o isolamento externo e permite o loopback usado pelos testes HTTP no próprio container.
@@ -86,6 +86,7 @@ Esses comandos não montam o volume da loja. As suítes criam bancos e uploads t
 | Fotos, retenção ou backup | `backend/maintenance.test.mjs` |
 | Operações assíncronas e estados dos botões | `backend/ui-regression.test.mjs` |
 | Revisão, rascunhos, conflitos ou publicação | `backend/catalog-drafts.test.mjs` |
+| Cadastro pendente, e-mail e decisão exclusiva do proprietário | `backend/access-requests.test.mjs` |
 | HTML/CSS responsivo | Conferência no navegador nos dois temas e em tela estreita |
 
 O teste de publicação cria uma falha de SQLite intencional para verificar o rollback. Considere o resultado final da suíte; nesse caso, o log de falha interna faz parte do cenário esperado. Os testes de interface simulam DOM e rede, sem substituir a avaliação visual.

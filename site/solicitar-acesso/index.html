@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
+  <title>Solicitar acesso ADM — Dindinha Presentes</title>
+  <link rel="icon" href="/assets/presente-rosa.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/brand.css"><link rel="stylesheet" href="/access.css">
+  <script src="/theme.js"></script>
+</head>
+<body data-access-mode="register">
+  <main class="access-shell">
+    <a class="access-brand" href="/"><img src="/assets/dindinha-icon.png" width="60" height="60" alt="">Dindinha Presentes</a>
+    <section class="access-card">
+      <p class="eyebrow">ACESSO À ADMINISTRAÇÃO</p><h1>Solicitar uma conta</h1>
+      <p>O proprietário recebe seu pedido e decide se você poderá administrar os produtos. Solicitar não libera o acesso.</p>
+      <p id="access-delivery" class="access-delivery" hidden></p>
+      <p id="access-message" role="status" aria-live="polite">Conferindo disponibilidade…</p>
+      <form id="access-register" method="post" action="/api/auth/access-requests">
+        <label>Seu nome<input name="name" autocomplete="name" maxlength="100" required></label>
+        <label>Seu e-mail<input name="email" type="email" autocomplete="email" maxlength="254" required></label>
+        <label>Crie uma senha<input name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required><small>De 12 a 128 caracteres. Não é a senha do seu e-mail.</small></label>
+        <label>Confirme a senha<input name="confirmation" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></label>
+        <button class="button button-primary" type="submit" disabled>Enviar solicitação</button>
+      </form>
+      <p class="access-footnote">A solicitação expira em 48 horas. Sua senha não é enviada por e-mail.</p>
+      <a class="quiet-link" href="/gestao/">Já tenho acesso → Entrar</a>
+    </section>
+  </main>
+  <script src="/config.js"></script><script type="module" src="/access.js"></script>
+</body>
+</html>

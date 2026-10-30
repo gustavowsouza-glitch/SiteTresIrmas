@@ -106,6 +106,8 @@ O rascunho admite até 2.000 produtos. A revisão impede salvar por uma aba desa
 
 ## Autenticação
 
+O cadastro por solicitação e os endpoints exclusivos do proprietário estão em [Acessos administrativos](acessos-administrativos.md). Login e sessão agora também retornam `isOwner`, determinado no servidor. Apenas a conta proprietária cujo e-mail corresponde a `APPROVAL_EMAIL` pode autorizar ou negar novos acessos; os outros ADMs continuam administrando produtos.
+
 O campo `email` do login aceita e-mail proprietário ou usuário adicional, normalizado para minúsculas. A API usa scrypt para verificar senhas e armazena somente o hash do token de sessão no banco.
 
 O cookie `ic_session` é HttpOnly, SameSite=Strict, tem `Path=/api` e duração de 8 horas. `Secure` depende de `COOKIE_SECURE`. Requisições de administração feitas no navegador usam credenciais da mesma origem.
@@ -122,6 +124,8 @@ O limite de login conta tentativas por endereço em memória: após 10 tentativa
 | `admins` | Conta proprietária, com `id=1`, e-mail e hash da senha |
 | `admin_logins` | Usuários administrativos adicionais e hashes |
 | `sessions` | Hash do token, expiração e login associado |
+| `access_requests` | Nome/e-mail, hash pendente e prazo de solicitações ainda não decididas |
+| `admin_profiles` | Nome/e-mail dos administradores aprovados pelo proprietário |
 | `metadata` | Marcador `seeded` e contador `catalog_revision` |
 | `catalog_draft` | Rascunho único: `products_json`, `base_hash` e `revision` |
 | `orphan_uploads` | Imagens sem referência e instante em que foram identificadas |

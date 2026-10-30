@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+  <title>Autorizar acessos — Dindinha Presentes</title>
+  <link rel="icon" href="/assets/presente-rosa.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/brand.css"><link rel="stylesheet" href="/access.css">
+  <script src="/theme.js"></script>
+</head>
+<body data-access-mode="owner">
+  <main class="access-shell access-owner">
+    <a class="access-brand" href="/"><img src="/assets/dindinha-icon.png" width="60" height="60" alt="">Dindinha Presentes</a>
+    <section class="access-card">
+      <p class="eyebrow">SOMENTE O PROPRIETÁRIO</p><h1>Autorizar acessos</h1>
+      <p>Confira cada solicitação antes de permitir. Administradores aprovados poderão cadastrar, editar, ocultar e excluir produtos, mas não autorizar outras contas.</p>
+      <p id="access-delivery" class="access-delivery" hidden></p>
+      <p id="access-message" role="status" aria-live="polite"></p>
+      <form id="owner-login" method="post" action="/api/auth/login">
+        <label>E-mail da conta proprietária<input name="email" type="email" autocomplete="username" required></label>
+        <label>Senha<input name="password" type="password" autocomplete="current-password" required></label>
+        <button class="button button-primary" type="submit">Entrar como proprietário</button>
+      </form>
+      <section id="owner-requests" hidden aria-label="Solicitações pendentes">
+        <div class="access-actions"><button id="refresh-requests" class="button" type="button">Atualizar solicitações</button><button id="owner-logout" class="button" type="button">Sair da conta</button></div>
+        <div id="request-list"></div>
+      </section>
+      <a class="quiet-link" href="/gestao/">← Voltar à Central de produtos</a>
+    </section>
+  </main>
+  <script src="/config.js"></script><script type="module" src="/access.js"></script>
+</body>
+</html>

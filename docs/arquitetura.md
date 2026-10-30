@@ -28,6 +28,7 @@ O Compose mantém o nome `irmas-coqueiro` para continuar usando o volume existen
 | [site/shop-core.mjs](../site/shop-core.mjs) | Sanitização das listas, regras do carrinho e resumo do pedido |
 | [site/brand.css](../site/brand.css) | Identidade visual, variáveis de cor e layout base |
 | [site/marketplace.css](../site/marketplace.css) | Ajustes da vitrine: banner, busca, filtros, listas e histórico |
+| [site/catalog.css](../site/catalog.css) | Visual específico do catálogo, abas com ícones e cartões de produtos |
 | [site/theme.js](../site/theme.js) | Tema claro/escuro e preferência salva |
 | [site/config.js](../site/config.js) | Número comercial do WhatsApp e caminho relativo da API |
 | [site/admin/admin.js](../site/admin/admin.js) | Login, edição direta e modo de gestão com rascunhos |
@@ -48,6 +49,10 @@ As oito rotas da vitrine são `/`, `/produtos/`, `/produto/?id=…`, `/carrinho/
 O Nginx entrega `site/index.html` para as rotas virtuais. `render()` em `storefront.js` escolhe a página pela URL. Links internos são interceptados com a History API; carregar uma URL diretamente ou pressionar Voltar também precisa funcionar.
 
 `/admin/` e `/gestao/` são páginas HTML próprias. O mesmo `admin.js` detecta o modo de gestão pela presença do botão `#publish-catalog`. Ao adicionar links para páginas independentes, confira também o interceptador de links da vitrine.
+
+O link **ADM** no rodapé leva a `/gestao/`. O interceptador libera a navegação normal para `/admin/` e `/gestao/`, para carregar o HTML administrativo em vez de tentar renderizar essas telas como páginas da vitrine. O acesso às operações continua protegido pela sessão da API.
+
+`/solicitar-acesso/` e `/autorizacoes/` também são páginas independentes, com `site/access.js` e `site/access.css`. A primeira pede acesso; a segunda exige a conta proprietária para decidir. O fluxo e o envio de e-mails estão em [Acessos administrativos](acessos-administrativos.md).
 
 O catálogo usa os parâmetros `q`, `categoria`, `ate` e `ordem`. Eles representam busca, categoria, teto de preço e ordenação. Os filtros são refletidos na URL.
 
@@ -79,6 +84,6 @@ Ao finalizar, somente as linhas selecionadas vão para `/api/cart/quote`. O back
 
 ## Estilos e referências antigas
 
-Na vitrine, `marketplace.css` é carregado depois de `brand.css`. Uma regra posterior pode sobrescrever a anterior; confira também os seletores `.dark` e as media queries.
+Na vitrine, a ordem é `brand.css`, `marketplace.css` e `catalog.css`. O último refina a página Todos os produtos, cujos botões de categoria filtram a mesma grade, preservando busca, faixa de preço e ordenação. Uma regra posterior pode sobrescrever a anterior; confira também os seletores `.dark` e as media queries.
 
 O painel carrega `styles.css`, `local.css`, seus estilos administrativos e `brand.css`. Portanto, esses dois CSS antigos ainda têm uso. Já `site/app.js` e `site/catalog.js` não implementam a vitrine atual. As pastas de referência e os ZIPs antigos não são a fonte ativa do site.

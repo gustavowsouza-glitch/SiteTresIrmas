@@ -7,6 +7,8 @@ import { pathToFileURL } from 'node:url';
 import { openDatabase, hashPassword, verifyPassword } from './database.mjs';
 import { cleanUploads } from './uploads.mjs';
 import { createCatalogDrafts } from './catalog-drafts.mjs';
+import { approvalMailer } from './approval-mail.mjs';
+import { createAccessRequests } from './access-requests.mjs';
 
 const categories = ['Canecas', 'Brindes', 'Brinquedos', 'Outros'];
 const sha = value => createHash('sha256').update(value).digest('hex');
@@ -14,21 +16,39 @@ class HttpError extends Error { constructor(status, message) { super(message); t
 const fail = (status, message) => { throw new HttpError(status, message); };
 const rowToProduct = row => ({ id: row.id, name: row.name, description: row.description, category: row.category, price: row.price_cents / 100, active: !!row.active, image_path: row.image_path, imageUrl: row.image_path ? `/api/images/${row.image_path}` : null, created_at: row.created_at });
 
-export async function createStore({ directory = process.env.DATA_DIR || '/data', origin = process.env.PUBLIC_ORIGIN || 'http://localhost:8080', secureCookie = process.env.COOKIE_SECURE === 'true' } = {}) {
+export async function createStore({ directory = process.env.DATA_DIR || '/data', origin = process.env.PUBLIC_ORIGIN || 'http://localhost:8080', secureCookie = process.env.COOKIE_SECURE === 'true', approvalEmail = process.env.APPROVAL_EMAIL || 'gustavo.wsouza@sacws.com.br', notifyAccess, accessMode = process.env.ACCESS_MAIL_MODE || 'resend' } = {}) {
+  const localAccess = accessMode === 'local';
+  if (localAccess && !['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin).hostname)) throw new Error('O modo local de solicitações exige uma origem localhost. Configure o envio real antes de publicar.');
+  const notifier = localAccess ? async () => {} : notifyAccess === undefined ? approvalMailer() : notifyAccess;
   const db = openDatabase(directory);
   const drafts = createCatalogDrafts(db, fail);
+  const access = createAccessRequests(db, { fail, notify: notifier, ownerEmail: approvalEmail, origin, local: localAccess });
   const dummyHash = await hashPassword(randomBytes(32).toString('hex'));
   const attempts = new Map();
+  const registrations = new Map();
   const cleanup = () => { try { cleanUploads(db, directory); } catch (error) { console.error('Falha na limpeza de fotos:', error.code || error.name); } };
   cleanup();
+  access.cleanup();
   const cleanupTimer = setInterval(cleanup, 60 * 60 * 1000);
   cleanupTimer.unref();
+  const accessTimer = setInterval(() => access.cleanup(), 60 * 60 * 1000);
+  accessTimer.unref();
   function sessionToken(request) { return /(?:^|;\s*)ic_session=([a-f0-9]{64})(?:;|$)/.exec(request.headers.cookie || '')?.[1]; }
   function authorized(request) {
     const token = sessionToken(request);
     return token && !!db.prepare('SELECT 1 FROM sessions WHERE token_hash=? AND expires_at>?').get(sha(token), Date.now());
   }
   function requireOwner(request) { if (!authorized(request)) fail(401, 'Entre com a conta do administrador.'); }
+  function isPrimaryOwner(request) {
+    if (!authorized(request)) return false;
+    const owner = db.prepare('SELECT email FROM admins WHERE id=1').get()?.email;
+    const session = db.prepare('SELECT login FROM sessions WHERE token_hash=?').get(sha(sessionToken(request)));
+    return owner === approvalEmail && (session?.login || owner) === owner;
+  }
+  function requirePrimaryOwner(request) {
+    requireOwner(request);
+    if (!isPrimaryOwner(request)) fail(403, 'Somente a conta proprietária pode autorizar novos acessos. Entre com o e-mail do proprietário.');
+  }
   function cookie(token, seconds) { return `ic_session=${token}; HttpOnly; SameSite=Strict; Path=/api; Max-Age=${seconds}${secureCookie ? '; Secure' : ''}`; }
   async function bytes(request, limit) {
     let size = 0; const chunks = [];
@@ -67,6 +87,26 @@ export async function createStore({ directory = process.env.DATA_DIR || '/data',
         if (request.headers['sec-fetch-site'] === 'cross-site') fail(403, 'Origem não permitida.');
       }
       if (method === 'GET' && path === '/api/health') return send(response, 200, { ok: true });
+      if (method === 'GET' && path === '/api/auth/access-options') return send(response, 200, { enabled: access.configured(), delivery: localAccess ? 'local' : 'email' });
+      if (method === 'POST' && path === '/api/auth/access-requests') {
+        const now = Date.now(), address = request.headers['x-real-ip'] || request.socket.remoteAddress;
+        for (const [key, entry] of registrations) if (entry.until <= now) registrations.delete(key);
+        const entry = registrations.get(address) || { count: 0, until: now + 60 * 60 * 1000 };
+        if (entry.count >= 5) fail(429, 'Muitas solicitações. Aguarde uma hora e tente novamente.');
+        entry.count++; registrations.set(address, entry);
+        return send(response, 202, await access.submit(await json(request)));
+      }
+      const accessDecision = /^\/api\/owner\/access-requests\/([a-f0-9-]{36})$/.exec(path);
+      if (path === '/api/owner/access-requests' || accessDecision) {
+        requirePrimaryOwner(request);
+        if (method === 'GET' && !accessDecision) return send(response, 200, access.list());
+        if (method === 'POST' && accessDecision) {
+          const input = await json(request);
+          requirePrimaryOwner(request);
+          return send(response, 200, access.decide(accessDecision[1], input.decision));
+        }
+        fail(405, 'Método não permitido.');
+      }
       if (method === 'POST' && path === '/api/auth/login') {
         const address = request.headers['x-real-ip'] || request.socket.remoteAddress;
         const now = Date.now();
@@ -85,13 +125,13 @@ export async function createStore({ directory = process.env.DATA_DIR || '/data',
         const token = randomBytes(32).toString('hex');
         db.prepare('DELETE FROM sessions WHERE expires_at<=?').run(now);
         db.prepare('INSERT INTO sessions (token_hash, expires_at, login) VALUES (?, ?, ?)').run(sha(token), now + 8 * 60 * 60 * 1000, loginName);
-        return send(response, 200, { email: owner.email || null, login: loginName, role: 'admin' }, { 'Set-Cookie': cookie(token, 28800) });
+        return send(response, 200, { email: owner.email || null, login: loginName, role: 'admin', isOwner: owner.email === approvalEmail }, { 'Set-Cookie': cookie(token, 28800) });
       }
       if (method === 'GET' && path === '/api/auth/session') {
         requireOwner(request);
         const identity = db.prepare('SELECT login FROM sessions WHERE token_hash=?').get(sha(sessionToken(request)))?.login
           || db.prepare('SELECT email FROM admins WHERE id=1').get()?.email;
-        return send(response, 200, { email: identity?.includes('@') ? identity : null, login: identity, role: 'admin' });
+        return send(response, 200, { email: identity?.includes('@') ? identity : null, login: identity, role: 'admin', isOwner: isPrimaryOwner(request) });
       }
       if (method === 'POST' && path === '/api/auth/logout') {
         const token = sessionToken(request);
@@ -202,7 +242,7 @@ export async function createStore({ directory = process.env.DATA_DIR || '/data',
       else response.end();
     }
   });
-  server.on('close', () => clearInterval(cleanupTimer));
+  server.on('close', () => { clearInterval(cleanupTimer); clearInterval(accessTimer); });
   return { server, db };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

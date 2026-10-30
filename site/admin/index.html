@@ -6,9 +6,10 @@
   <link rel="icon" href="../assets/presente-rosa.svg?v=2" type="image/svg+xml">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Nunito:wght@400;600;700&display=swap">
   <link rel="stylesheet" href="../styles.css"><link rel="stylesheet" href="../local.css"><link rel="stylesheet" href="admin.css"><link rel="stylesheet" href="../brand.css">
+  <link rel="stylesheet" href="/access.css">
   <script src="../theme.js"></script>
 </head>
-<body class="admin-page min-h-screen bg-background text-foreground">
+<body class="admin-page min-h-screen bg-background text-foreground" data-access-mode="embedded">
   <header class="admin-header">
     <div class="admin-header-inner">
       <a href="../" class="admin-brand" aria-label="Dindinha Presentes, voltar à loja"><img src="../assets/dindinha-icon.png" width="42" height="42" alt=""><span>Dindinha Presentes<small>ÁREA DA LOJA</small></span></a>
@@ -26,18 +27,33 @@
         <div class="admin-welcome-tags"><span>✳ Produtos</span><span>Fotos</span><span>Preços</span></div>
       </aside>
       <div class="admin-login-side">
-        <form id="login" class="admin-form admin-login-form">
+        <form id="login" class="admin-form admin-login-form" method="post" action="/api/auth/login">
           <div class="admin-login-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/></svg></div>
           <div><p class="admin-eyebrow">SEU ESPAÇO DE CRIAÇÃO</p><h2>Boas-vindas!</h2><p class="admin-intro">Entre na sua conta para cuidar da loja.</p></div>
           <label>Usuário ou e-mail<input name="email" type="text" placeholder="Seu usuário ou e-mail" autocomplete="username" required></label>
           <label>Senha<input name="password" type="password" placeholder="Digite sua senha" autocomplete="current-password" minlength="4" required></label>
           <button class="admin-btn admin-btn-primary admin-login-submit" type="submit">Entrar no painel <span aria-hidden="true">→</span></button>
           <p class="admin-login-note">Acesso exclusivo à administração da loja.</p>
+          <button id="show-register" type="button" class="admin-back-link access-switch" aria-controls="register-panel" aria-expanded="false">Não tem conta? Criar conta</button>
           <a class="admin-back-link" href="../">← Voltar para a vitrine</a>
         </form>
+        <div id="register-panel" hidden>
+          <form id="access-register" class="admin-form admin-login-form" method="post" action="/api/auth/access-requests" aria-labelledby="register-title">
+            <div><p class="admin-eyebrow">FAÇA PARTE DA ADMINISTRAÇÃO</p><h2 id="register-title">Criar conta</h2><p class="admin-intro">Seu acesso depende da aprovação do proprietário.</p></div>
+            <p id="access-delivery" class="access-delivery" hidden></p>
+            <p id="access-message" role="status" aria-live="polite"></p>
+            <label>Seu nome<input name="name" autocomplete="name" maxlength="100" required></label>
+            <label>Seu e-mail<input name="email" type="email" autocomplete="email" maxlength="254" required></label>
+            <label>Crie uma senha<input name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required><small>Use de 12 a 128 caracteres.</small></label>
+            <label>Confirme a senha<input name="confirmation" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></label>
+            <button class="admin-btn admin-btn-primary admin-login-submit" type="submit" disabled>Solicitar criação da conta →</button>
+            <button id="show-login" type="button" class="admin-back-link access-switch">Já tenho conta → Entrar</button>
+          </form>
+        </div>
       </div>
     </div>
     <section id="panel" hidden>
+      <a id="owner-access-link" class="admin-back-link" href="/autorizacoes/" hidden>Autorizar novos acessos ADM →</a>
       <div class="admin-panel-heading"><div><p class="admin-eyebrow">TUDO DO SEU JEITO</p><h1>Meus produtos</h1><p>Cuide das fotos, ajuste os preços e apresente suas novidades.</p></div><button id="new-product" class="admin-btn admin-btn-primary"><span aria-hidden="true">+</span> Novo produto</button></div>
       <form id="editor" class="admin-form admin-editor" hidden>
         <div class="admin-editor-heading"><p class="admin-eyebrow">CADA DETALHE CONTA</p><h2 id="editor-title">Novo produto</h2></div>
@@ -54,5 +70,5 @@
     </section>
     <footer class="admin-footer">Dindinha Presentes <span aria-hidden="true">✳</span> Presentes com a sua história.</footer>
   </main>
-  <script src="../config.js"></script><script src="admin.js"></script>
+  <script src="../config.js"></script><script src="admin.js"></script><script type="module" src="/access.js"></script>
 </body></html>

@@ -1,4 +1,6 @@
 /* Organização de marketplace com a identidade da Dindinha. Apenas a vitrine. */
+.footer-admin-link { display: inline-block; margin-left: 14px; padding-block: 4px; font-size: 9px; font-weight: 700; letter-spacing: .08em; color: var(--muted-foreground); }
+.footer-admin-link:hover, .footer-admin-link:focus-visible { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 .shopping-page { padding-block: 25px; }
 .shopping-tabs { display: flex; gap: 28px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
 .shopping-tabs a { display: inline-flex; align-items: center; gap: 9px; padding: 12px 0 16px; border-bottom: 3px solid transparent; font-weight: 800; color: var(--muted-foreground); }

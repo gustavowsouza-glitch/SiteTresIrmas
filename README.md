@@ -8,6 +8,15 @@ Comece pelo [índice da documentação técnica](docs/README.md). Ele reúne a a
 
 ## Revisão e correções — 30/10/2026
 
+- Banner do catálogo com presente e frase ampliados para ocupar melhor o centro; removida a navegação redundante “Início / Todos os produtos” acima do banner.
+- Refinado o catálogo: busca compacta, filtro de preço horizontal e remoção do bloco lateral “Sua escolha”, ampliando a área dos produtos.
+- Redesenhada a página Todos os produtos: apresentação do catálogo, abas de categorias com ícones e contadores, filtros reorganizados e cartões com botão Adicionar e link de personalização. Os estilos específicos ficam em `site/catalog.css`, com versões clara, escura e responsiva; os dados dos produtos são preservados.
+- As telas `/gestao/` e `/admin/` oferecem **Entrar** e **Criar conta** na mesma página de acesso. A criação continua sendo uma solicitação dependente da aprovação do proprietário.
+- Ativado o modo de teste local das solicitações (`ACCESS_MAIL_MODE=local` em `.env`): pendências aparecem em `/autorizacoes/`, sem enviar e-mail real. Somente a conta proprietária continua decidindo. Para usar Resend posteriormente, mude o modo e configure as credenciais conforme o [guia de acessos](docs/acessos-administrativos.md).
+- Adicionado **Solicitar uma conta** antes do login ADM. O cadastro depende de decisão da conta proprietária em `/autorizacoes/`; administradores comuns continuam gerenciando produtos, sem autorizar usuários.
+- Avisos destinados a `gustavo.wsouza@sacws.com.br`, com fluxo de Permitir/Negar após login proprietário. As solicitações expiram em 48 horas e senhas não são enviadas por e-mail. O envio real aguarda configuração de Resend e remetente autorizado; o modo local permite testar pela caixa de solicitações, sem e-mails reais.
+- Instruções de configuração, uso local e testes em [Acessos administrativos](docs/acessos-administrativos.md). Integração aprovada e 21 testes aprovados, incluindo caixa local, autorização exclusiva e bloqueio do modo local para origem pública, sem envio real.
+- Adicionado um link discreto **ADM** no rodapé da vitrine, junto ao nome da loja, para acessar `/gestao/`. A navegação abre a página administrativa completa, com login quando não houver sessão válida.
 - A API passa a recusar JSON `null`, listas e valores simples com erro de validação (400), evitando falha interna no login e mantendo respostas consistentes nos demais endpoints.
 - Ao salvar uma edição direta no painel, a existência do produto é verificada depois de receber os dados. Se outra aba o excluir durante o envio, a resposta é “Produto não encontrado” (404), sem tentar devolver um registro inexistente.
 - A validação de fotos do painel direto exige um arquivo, assim como a central de rascunhos; pastas com nome de imagem são recusadas.
@@ -131,7 +140,7 @@ Para entrar na central:
 
 O usuário adicional possui permissão administrativa sobre o mesmo catálogo. A conta proprietária anterior continua válida. Os acessos ficam no banco local: clonar o repositório em outra máquina não recria automaticamente as contas. Um backup completo do banco também preserva essas contas; as senhas ficam armazenadas como hash, não como texto.
 
-A conta proprietária é criada por `backend/bootstrap-admin.mjs`, que recebe JSON com `email` e `password` pela entrada padrão. A senha deve ter no mínimo 12 caracteres. O script recusa sobrescrever uma conta existente. Não existe cadastro público, e clientes não precisam entrar na loja. O formulário também aceita nomes de usuário para acessos administrativos adicionais, criados localmente por `backend/create-login.mjs`. Esses acessos compartilham a administração do catálogo e possuem sessões independentes; a conta proprietária por e-mail é preservada. Senhas não devem ser gravadas neste README ou no Git.
+A conta proprietária é criada por `backend/bootstrap-admin.mjs`, que recebe JSON com `email` e `password` pela entrada padrão. A senha deve ter no mínimo 12 caracteres. O script recusa sobrescrever uma conta existente. O público pode solicitar acesso administrativo quando o envio de e-mail estiver configurado; a liberação depende exclusivamente da conta proprietária. Clientes não precisam entrar na loja. O formulário também aceita nomes de usuário para acessos administrativos adicionais, criados localmente por `backend/create-login.mjs`. Esses acessos compartilham a administração do catálogo e possuem sessões independentes, mas não podem autorizar novos usuários. A conta proprietária por e-mail é preservada. Senhas não devem ser gravadas neste README ou no Git.
 
 O administrador gerencia nome, categoria, descrição, preço, foto e visibilidade dos produtos. Os preços são armazenados em centavos. Fotos podem ser PNG, JPG, WebP ou GIF até 5 MB. A API exige sessão válida para todas as alterações e para listar produtos ocultos. A senha é armazenada com salt e hash scrypt. O cookie de sessão é HttpOnly e SameSite=Strict, dura 8 horas e é invalidado no logout.
 
@@ -185,7 +194,7 @@ Execute depois de reconstruir a imagem com os arquivos atuais:
 ```powershell
 docker compose build api
 docker run --rm --network none irmas-coqueiro-api node test.mjs
-docker run --rm --network none irmas-coqueiro-api node --test catalog-drafts.test.mjs shop-core.test.mjs maintenance.test.mjs ui-regression.test.mjs
+docker run --rm --network none irmas-coqueiro-api node --test access-requests.test.mjs catalog-drafts.test.mjs shop-core.test.mjs maintenance.test.mjs ui-regression.test.mjs
 ```
 
 Os testes usam banco e arquivos temporários, sem modificar produtos reais:
@@ -208,6 +217,7 @@ Na validação de 26/10/2026, o teste de integração passou, incluindo o novo l
 - `site/shop-core.mjs`: regras do carrinho, categorias e resumo de pedido.
 - `site/brand.css`: identidade rosa/vinho, temas claro/escuro e layout responsivo.
 - `site/marketplace.css`: organização da vitrine em formato de marketplace, busca do cabeçalho, filtros e adaptação para celular, sem alterar o visual do painel.
+- `site/catalog.css`: refinamentos exclusivos de Todos os produtos, abas de categorias e cartões do catálogo.
 - `site/theme.js`: seleção do tema, preferência do sistema e escolha salva no navegador.
 - `site/config.js`: WhatsApp e endereço relativo `/api`.
 - `site/admin/`: login e editor direto de produtos; o JavaScript também atende a central no modo rascunho.

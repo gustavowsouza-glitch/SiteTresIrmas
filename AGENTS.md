@@ -16,6 +16,7 @@ Este repositório contém a **Dindinha Presentes**, uma loja local com Docker, f
 - O frontend não usa React, npm ou bundler. Não introduza uma troca de stack como parte de uma edição pequena.
 - Preserve a marca Dindinha Presentes, os dois temas e o comportamento responsivo.
 - Catálogo publicado e rascunhos são estados distintos: `/admin/` grava diretamente; `/gestao/` exige publicação dos rascunhos.
+- Apenas a conta proprietária por e-mail autoriza novos acessos em `/autorizacoes/`. Outros ADMs administram produtos. Preserve a checagem no backend e não transforme a abertura de um link de e-mail em aprovação automática. Consulte `docs/acessos-administrativos.md`.
 - Preços são calculados pelo backend em centavos. Favoritos, carrinho e histórico locais não concedem permissões nem comprovam compras.
 - Preserve os controles de concorrência: `renderVersion`, snapshots antes de `await`, `revision` e `base_hash`.
 - Escape dados inseridos em HTML; no painel, prefira `textContent` para textos.
