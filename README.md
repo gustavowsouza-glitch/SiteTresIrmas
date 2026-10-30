@@ -8,6 +8,11 @@ Comece pelo [índice da documentação técnica](docs/README.md). Ele reúne a a
 
 ## Revisão e correções — 30/10/2026
 
+- Busca compacta e controles de preço/ordenação refinados no catálogo, com menus nas cores da loja, indicação da opção ativa e navegação por teclado. Os filtros e a limpeza continuam sincronizados com a URL.
+- Padronizado o seletor Carrinho/Favoritos/Minhas compras com ícones, contadores e seção ativa. Carrinho e Favoritos receberam painéis amplos com ilustrações, ações em destaque e apoio resumido para listas vazias, além de cartões e resumo refinados quando preenchidos. Mantidos seleção, personalização e finalização pelo WhatsApp, com adaptação para celular e modo escuro.
+- Minhas compras reorganizada para histórico vazio e preenchido: apresentação inicial, orientação lateral, contadores reais, registros por mês e cartões com referência, data, quantidades, subtotais e personalizações. O histórico continua local e não representa confirmação de venda ou pagamento.
+- Página Sobre a loja renovada com logo em destaque, apresentação da marca, cartões de valores e uma explicação visual do caminho de personalização, usando as imagens e a identidade existentes.
+- Página Contato renovada com ilustração de presente, atalhos para personalização/dúvidas/consulta de pedido, destaque para o WhatsApp e cartões de dúvidas frequentes. Os atalhos abrem conversas com texto preparado, sem enviar mensagens automaticamente.
 - Banner do catálogo com presente e frase ampliados para ocupar melhor o centro; removida a navegação redundante “Início / Todos os produtos” acima do banner.
 - Refinado o catálogo: busca compacta, filtro de preço horizontal e remoção do bloco lateral “Sua escolha”, ampliando a área dos produtos.
 - Redesenhada a página Todos os produtos: apresentação do catálogo, abas de categorias com ícones e contadores, filtros reorganizados e cartões com botão Adicionar e link de personalização. Os estilos específicos ficam em `site/catalog.css`, com versões clara, escura e responsiva; os dados dos produtos são preservados.
@@ -218,6 +223,10 @@ Na validação de 26/10/2026, o teste de integração passou, incluindo o novo l
 - `site/brand.css`: identidade rosa/vinho, temas claro/escuro e layout responsivo.
 - `site/marketplace.css`: organização da vitrine em formato de marketplace, busca do cabeçalho, filtros e adaptação para celular, sem alterar o visual do painel.
 - `site/catalog.css`: refinamentos exclusivos de Todos os produtos, abas de categorias e cartões do catálogo.
+- `site/contact.css`: apresentação da página Contato, atalhos de atendimento e dúvidas frequentes.
+- `site/about.css`: visual da página Sobre a loja, apresentação da marca e etapas de personalização.
+- `site/purchases.css`: apresentação de Minhas compras, estado vazio e organização dos registros do navegador.
+- `site/shopping.css`: seletor compartilhado das três listas e visual de Carrinho/Favoritos, vazios ou preenchidos.
 - `site/theme.js`: seleção do tema, preferência do sistema e escolha salva no navegador.
 - `site/config.js`: WhatsApp e endereço relativo `/api`.
 - `site/admin/`: login e editor direto de produtos; o JavaScript também atende a central no modo rascunho.

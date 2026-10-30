@@ -29,6 +29,10 @@ O Compose mantém o nome `irmas-coqueiro` para continuar usando o volume existen
 | [site/brand.css](../site/brand.css) | Identidade visual, variáveis de cor e layout base |
 | [site/marketplace.css](../site/marketplace.css) | Ajustes da vitrine: banner, busca, filtros, listas e histórico |
 | [site/catalog.css](../site/catalog.css) | Visual específico do catálogo, abas com ícones e cartões de produtos |
+| [site/contact.css](../site/contact.css) | Página Contato, atalhos de atendimento e dúvidas frequentes |
+| [site/about.css](../site/about.css) | Página Sobre a loja, apresentação da marca e etapas de personalização |
+| [site/purchases.css](../site/purchases.css) | Histórico vazio/preenchido, agrupamento visual e cartões de Minhas compras |
+| [site/shopping.css](../site/shopping.css) | Seletor compartilhado e apresentação de Carrinho/Favoritos |
 | [site/theme.js](../site/theme.js) | Tema claro/escuro e preferência salva |
 | [site/config.js](../site/config.js) | Número comercial do WhatsApp e caminho relativo da API |
 | [site/admin/admin.js](../site/admin/admin.js) | Login, edição direta e modo de gestão com rascunhos |
@@ -78,12 +82,14 @@ O rascunho é compartilhado por todos os administradores desta instalação. Nã
 
 Esses dados pertencem ao navegador e à origem em que foram criados. Não são sincronizados entre dispositivos ou com o Lovable. O evento `storage` atualiza as listas entre abas da mesma origem.
 
+Em Minhas compras, registros reais são ordenados do mais recente ao mais antigo e agrupados por mês, com dados de cada resumo e seus itens em uma área expansível. Sem registros, aparece uma apresentação de início, sem inserir pedidos fictícios. Os contadores representam resumos iniciados e unidades nesses resumos, não vendas confirmadas.
+
 Ao finalizar, somente as linhas selecionadas vão para `/api/cart/quote`. O backend confere o catálogo e recalcula o preço em centavos. Depois, o navegador registra o resumo local e abre o WhatsApp. A aplicação não envia a mensagem nem confirma pagamento ou venda.
 
 `renderVersion` e snapshots do carrinho impedem que uma resposta atrasada abra um pedido antigo depois de navegar ou mudar quantidades. No painel, os dados e o ID do produto são capturados antes do envio da foto.
 
 ## Estilos e referências antigas
 
-Na vitrine, a ordem é `brand.css`, `marketplace.css` e `catalog.css`. O último refina a página Todos os produtos, cujos botões de categoria filtram a mesma grade, preservando busca, faixa de preço e ordenação. Uma regra posterior pode sobrescrever a anterior; confira também os seletores `.dark` e as media queries.
+Na vitrine, a ordem é `brand.css`, `marketplace.css`, `catalog.css`, `contact.css`, `about.css`, `purchases.css` e `shopping.css`. Os estilos específicos refinam suas páginas; `shopping.css` unifica o seletor das três listas e cuida de Carrinho/Favoritos. No catálogo, os botões de categoria filtram a mesma grade, preservando busca, faixa de preço e ordenação. Uma regra posterior pode sobrescrever a anterior; confira também os seletores `.dark` e as media queries.
 
 O painel carrega `styles.css`, `local.css`, seus estilos administrativos e `brand.css`. Portanto, esses dois CSS antigos ainda têm uso. Já `site/app.js` e `site/catalog.js` não implementam a vitrine atual. As pastas de referência e os ZIPs antigos não são a fonte ativa do site.

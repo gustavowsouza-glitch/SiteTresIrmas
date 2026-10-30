@@ -6,6 +6,25 @@ import vm from 'node:vm';
 const source = name => readFileSync(new URL(existsSync(new URL(`./ui/${name}`, import.meta.url)) ? `./ui/${name}` : `../site/${name === 'admin.js' ? 'admin/admin.js' : name}`, import.meta.url), 'utf8');
 const node = () => ({ disabled: false, hidden: false, value: '', checked: false, files: [], textContent: '', addEventListener(type, fn) { this[type] = fn; }, querySelectorAll() { return []; }, focus() {}, reset() {}, replaceChildren() {}, append() {} });
 const tick = () => new Promise(resolve => setImmediate(resolve));
+test('seletor das listas mantém um único destino ativo e carrinho vazio não pede cotação', async () => {
+  const script = source('storefront.js');
+  const root = { innerHTML: '' };
+  const context = vm.createContext({ cart: [], favorites: ['favorite'], root, icon: () => '', quoteCart: () => { throw Error('Carrinho vazio não deve consultar a API'); } });
+  vm.runInContext(script.slice(script.indexOf('function shoppingTabs('), script.indexOf('function favoritesPage(')), context);
+  for (const [active, route] of [['cart', '/carrinho/'], ['favorites', '/favoritos/'], ['orders', '/minhas-compras/']]) {
+    const markup = context.shoppingTabs(active);
+    assert.equal((markup.match(/aria-current="page"/g) || []).length, 1);
+    assert.ok(markup.includes(`href="${route}" aria-current="page"`));
+    assert.equal((markup.match(/<a /g) || []).length, 3);
+    assert.match(markup, /data-favorites-count>1/);
+  }
+  vm.runInContext(script.slice(script.indexOf('async function cartPage('), script.indexOf('function contact()')), context);
+  await context.cartPage([], 1);
+  assert.match(root.innerHTML, /Seu carrinho ainda está vazio/);
+  assert.ok(root.innerHTML.includes('href="/produtos/"'));
+  assert.ok(root.innerHTML.includes('href="/favoritos/"'));
+  assert.equal(root.innerHTML.includes('id="checkout"'), false);
+});
 test('criar conta alterna dentro do login e envia uma solicitação sem navegar ou liberar acesso', async () => {
   const selectors = ['#login', '#register-panel', '#access-register', '#show-register', '#show-login', '#message', '#access-message', '#access-delivery'];
   const nodes = Object.fromEntries(selectors.map(key => [key, node()]));
@@ -50,6 +69,19 @@ test('histórico persiste o resumo e mostra confirmação pendente, sem depender
   assert.match(root.innerHTML, /&lt;Caneca&gt;/);
   assert.match(root.innerHTML, /A confirmar com a loja/);
   assert.match(root.innerHTML, /sem confirmar envio, pagamento ou compra/);
+  const history = [
+    { id: '22222222-2222-4222-8222-222222222222', createdAt: '2026-09-15T12:00:00Z', items: [{ id, name: 'Pedido antigo', quantity: 2, price: 12.35, personalization: '<Nome especial>' }] },
+    { id: '33333333-3333-4333-8333-333333333333', createdAt: '2026-10-20T12:00:00Z', items: [{ id, name: 'Pedido recente', quantity: 1, price: 30, personalization: '' }, { id, name: 'Outro presente', quantity: 3, price: 10, personalization: 'Ana' }] }
+  ];
+  vm.runInContext(`orders = cleanOrders(${JSON.stringify(history)});`, context);
+  context.purchasesPage();
+  assert.ok(root.innerHTML.indexOf('Pedido recente') < root.innerHTML.indexOf('Pedido antigo'));
+  assert.match(root.innerHTML, /outubro de 2026/); assert.match(root.innerHTML, /setembro de 2026/);
+  assert.match(root.innerHTML, /&lt;Nome especial&gt;/);
+  assert.match(root.innerHTML, /Outro presente/);
+  assert.match(root.innerHTML, /24\.7/);
+  assert.match(root.innerHTML, /60/);
+  assert.equal((root.innerHTML.match(/class="purchase-record"/g) || []).length, 2);
 });
 
 test('admin keeps the original product and all captured fields while a photo upload is pending', async () => {
@@ -144,6 +176,45 @@ test('catalog combines search, category and price, preserves filters in the URL 
   nodes['#catalog-sort'].value = 'price-asc'; nodes['#catalog-sort'].change();
   assert.equal(nodes['#catalog-grid'].innerHTML, 'Kit MDF|Caneca azul|Caneca rosa');
   assert.equal(currentUrl.searchParams.get('ordem'), 'price-asc');
+});
+test('menus do catálogo aplicam a escolha, sincronizam a limpeza e aceitam teclado', () => {
+  const document = { activeElement: null, createElement() {
+    return { ...node(), children: [], attributes: {}, setAttribute(key, value) { this.attributes[key] = value; },
+      append(...children) { this.children.push(...children); }, focus() { document.activeElement = this; }, contains(target) { return this === target || this.children.some(child => child.contains(target)); } };
+  } };
+  const select = { value: 'all', options: [{ value: 'all', textContent: 'Todos os valores' }, { value: '30', textContent: 'Até R$ 30' }],
+    get selectedIndex() { return this.options.findIndex(option => option.value === this.value); },
+    getAttribute: () => 'Faixa de preço', after(dropdown) { this.dropdown = dropdown; } };
+  let changes = 0;
+  const context = vm.createContext({ document });
+  const script = source('storefront.js');
+  vm.runInContext(script.slice(script.indexOf('function enhanceCatalogSelect('), script.indexOf('function detail(')), context);
+  const sync = context.enhanceCatalogSelect(select, () => changes++);
+  const [trigger, menu] = select.dropdown.children;
+  assert.equal(select.hidden, true);
+  assert.equal(trigger.textContent, 'Todos os valores');
+  assert.equal(menu.children[0].attributes['aria-checked'], 'true');
+  document.activeElement = trigger;
+  select.dropdown.keydown({ key: 'ArrowDown', preventDefault() {} });
+  assert.equal(document.activeElement, menu.children[0]);
+  select.dropdown.keydown({ key: 'End', preventDefault() {} });
+  assert.equal(document.activeElement, menu.children[1]);
+  menu.children[1].click();
+  assert.equal(select.value, '30');
+  assert.equal(changes, 1);
+  assert.equal(trigger.textContent, 'Até R$ 30');
+  assert.equal(menu.children[1].attributes['aria-checked'], 'true');
+  assert.equal(select.dropdown.open, false);
+  assert.equal(document.activeElement, trigger);
+  select.value = 'all'; sync();
+  assert.equal(trigger.textContent, 'Todos os valores');
+  assert.equal(menu.children[1].attributes['aria-checked'], 'false');
+  select.dropdown.open = true;
+  select.dropdown.keydown({ key: 'Escape', preventDefault() {} });
+  assert.equal(select.dropdown.open, false);
+  select.dropdown.open = true;
+  select.dropdown.focusout({ relatedTarget: null });
+  assert.equal(select.dropdown.open, false);
 });
 test('checkout redirects only with an unchanged cart; stale requests and errors after navigation are ignored', async () => {
   const normal = await setupCart();

@@ -59,7 +59,11 @@
 .shopping-tabs { overflow-x: auto; }
 .shopping-tabs a { flex-shrink: 0; white-space: nowrap; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
-.header-inner { position: relative; min-height: 83px; gap: 30px; }
+.header-inner { position: relative; min-height: 106px; gap: 30px; }
+.header-inner .brand { gap: 12px; }
+.header-inner .brand img { width: 76px; height: 76px; }
+.header-inner .brand > span { font-size: 36px; }
+.header-inner .brand small { font-size: 11px; padding-top: 9px; }
 .header-search { position: absolute; top: calc(100% - 4px); right: 0; z-index: 5; display: flex; width: min(520px, 100%); min-width: 0; background: #f9edf3; color: #4b293d; border-radius: 8px; box-shadow: 0 6px 20px #25112130; }
 .header-search[hidden] { display: none; }
 .header-search input { flex: 1; width: 0; min-width: 0; padding: 14px 18px; border: 0; border-radius: 8px 0 0 8px; background: transparent; color: inherit; outline: none; font-size: 14px; }
@@ -210,5 +214,16 @@
   .cart-store-heading { padding: 14px; font-size: 11px; }
   .shop-header-actions .cart-header { width: 39px; height: 44px; }
   .cart-header small { font-size: 8px; }
-  .header-inner .brand > span { font-size: 20px; }
+  .header-inner .brand img { width: 54px; height: 54px; }
+  .header-inner .brand > span { font-size: 28px; }
+  .header-inner .brand small { font-size: 9px; padding-top: 7px; }
+}
+@media (max-width: 420px) {
+  .header-inner .brand { gap: 8px; }
+  .header-inner .brand img { width: 44px; height: 44px; }
+  .header-inner .brand > span { font-size: 24px; }
+  .header-inner .brand small { font-size: 8px; }
+}
+@media (max-width: 360px) {
+  .header-inner .shop-header-actions { flex-basis: 100%; justify-content: flex-end; }
 }
